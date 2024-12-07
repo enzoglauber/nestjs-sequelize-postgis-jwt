@@ -2,33 +2,34 @@ import { Sequelize } from 'sequelize-typescript'
 import { Address } from 'src/address/entities/address.entity'
 import { User } from 'src/user/entities/user.entity'
 import { DEVELOPMENT, PRODUCTION, SEQUELIZE, TEST } from '../constants'
+import { config } from './database.config'
 
 export const providers = [
   {
     provide: SEQUELIZE,
     useFactory: async () => {
-      let config
+      let options
       switch (process.env.NODE_ENV) {
         case DEVELOPMENT:
-          config = config.development
+          options = config.development
           break
         case TEST:
-          config = config.test
+          options = config.test
           break
         case PRODUCTION:
-          config = config.production
+          options = config.production
           break
         default:
-          config = config.development
+          options = config.development
       }
       const sequelize = new Sequelize({
-        ...config,
-        dialectOptions: {
-          ssl: {
-            require: true,
-            rejectUnauthorized: false // <<<<<<< YOU NEED THIS
-          }
-        }
+        ...options
+        // dialectOptions: {
+        //   ssl: {
+        //     require: true,
+        //     rejectUnauthorized: false // <<<<<<< YOU NEED THIS
+        //   }
+        // }
       })
       sequelize.addModels([User, Address])
       await sequelize.sync()
