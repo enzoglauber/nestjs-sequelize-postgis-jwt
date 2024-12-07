@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
+import { ApiOkResponse } from '@nestjs/swagger'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { User } from './entities/user.entity'
 import { UserService } from './user.service'
 
 @Controller('user')
@@ -13,7 +15,7 @@ export class UserController {
   }
 
   @Get()
-  // @ApiOkResponse({ type: User, isArray: true })
+  @ApiOkResponse({ type: User, isArray: true })
   async findAll() {
     return this.userService.findAll()
   }

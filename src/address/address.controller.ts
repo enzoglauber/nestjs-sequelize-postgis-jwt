@@ -1,16 +1,22 @@
-import { Controller } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
+import { ApiOkResponse } from '@nestjs/swagger'
+import { AddressService } from './address.service'
+import { Address } from './entities/address.entity'
 
 @Controller('address')
 export class AddressController {
-  // constructor(private readonly addressService: AddressService) {}
+  constructor(private readonly addressService: AddressService) {}
   // @Post()
   // create(@Body() createAddressDto: CreateAddressDto) {
   //   return this.addressService.create(createAddressDto)
   // }
-  // @Get()
-  // findAll() {
-  //   return this.addressService.findAll()
-  // }
+
+  @Get()
+  @ApiOkResponse({ type: Address, isArray: true })
+  async findAll() {
+    return this.addressService.findAll()
+  }
+
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.addressService.findOne(+id)

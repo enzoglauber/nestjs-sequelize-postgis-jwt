@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { Address } from 'src/address/entities/address.entity'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { UserDto } from './dto/user.dto'
 import { User } from './entities/user.entity'
 import { USER_REPOSITORY } from './users.providers'
 
@@ -17,10 +19,9 @@ export class UserService {
     return 'This action adds a new user'
   }
 
-  async findAll() {
-    return await this.userRepository.findAll<User>()
-    // const users = await this.userRepository.findAll<User>()
-    // return users.map((user) => new User(user))
+  async findAll(): Promise<UserDto[]> {
+    const users = await this.userRepository.findAll({ include: [Address] })
+    return users.map((user) => new UserDto(user.get({ plain: true })))
   }
 
   //   async findAll(limit, page, at?: string): Promise<{ results: Property[], total: number }> {
