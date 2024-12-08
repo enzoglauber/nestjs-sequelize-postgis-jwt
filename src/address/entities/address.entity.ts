@@ -17,5 +17,15 @@ export class Address extends Model {
   user: User
 
   @Column({ type: DataType.GEOMETRY('POINT', 4326), allowNull: true })
-  location: any // TODO: I need to typed this shit
+  location: string
 }
+
+// const Address = sequelize.define('Address', {
+//   location: {
+//     type: DataTypes.GEOMETRY('POINT'),
+//     get() {
+//       const rawLocation = this.getDataValue('location')
+//       return rawLocation?.coordinates
+//     }
+//   }
+// })
