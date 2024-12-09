@@ -44,20 +44,23 @@ export class UserDto {
       {
         id: 1,
         name: 'Home Address',
-        location: 'POINT(-46.5244254 -23.5356837)'
+        location: [-46.49303586178094, -23.5069054086106]
       },
       {
         id: 2,
         name: 'Work Address',
-        location: 'POINT(-46.6204254 -23.5506837)'
+        location: [-46.6204254, -23.5506837]
       }
     ]
   })
   @IsOptional()
   @IsArray()
-  addresses?: AddressDto[] // Campo opcional
+  addresses?: AddressDto[]
 
   constructor(partial: Partial<UserDto>) {
     Object.assign(this, partial)
+    if (partial.addresses) {
+      this.addresses = partial.addresses.map((address) => new AddressDto(address))
+    }
   }
 }
