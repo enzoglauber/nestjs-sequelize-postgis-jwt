@@ -11,7 +11,7 @@ async function bootstrap() {
     credentials: true
   })
   //
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }))
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
   app.setGlobalPrefix('api')

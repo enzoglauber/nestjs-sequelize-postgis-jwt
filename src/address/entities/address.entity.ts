@@ -1,6 +1,6 @@
 import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript'
+import { Fn } from 'sequelize/types/utils'
 import { User } from 'src/user/entities/user.entity'
-
 @Table({ timestamps: true })
 export class Address extends Model {
   @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
@@ -17,7 +17,7 @@ export class Address extends Model {
   user: User
 
   @Column({ type: DataType.GEOMETRY('POINT', 4326), allowNull: true })
-  location: string
+  location?: string | Fn
 }
 
 // const Address = sequelize.define('Address', {
