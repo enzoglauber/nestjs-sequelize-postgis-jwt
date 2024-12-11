@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { col, fn, literal, where } from 'sequelize'
 import { ADDRESS_REPOSITORY } from './address.providers'
 import { AddressDto } from './dto/address.dto'
@@ -25,9 +25,9 @@ export class AddressService {
   // SELECT
   //     id,
   //     ST_AsText(location) AS location,
-  //     ST_Distance(location, ST_SetSRID(ST_GeomFromText('POINT(-46.633308 -23.550520)'), 4326)) AS distance
+  //     ST_Distance(location, ST_SetSRID(ST_GeomFromText('POINT(-23.53506 -46.525199)'), 4326)) AS distance
   // FROM "Addresses"
-  // WHERE ST_DWithin(location, ST_SetSRID(ST_GeomFromText('POINT(-46.633308 -23.550520)'), 4326), 0.15)
+  // WHERE ST_DWithin(location, ST_SetSRID(ST_GeomFromText('POINT(-23.53506 -46.525199)'), 4326), 0.015)
   // ORDER BY distance ASC;
 
   async findAllWithLocation(
@@ -67,7 +67,7 @@ export class AddressService {
   async update(id: number, updateAddressDto: UpdateAddressDto) {
     const address = await this.addressRepository.findByPk(id)
     if (!address) {
-      throw new Error('Address not found')
+      throw new HttpException('Address not found', HttpStatus.NOT_FOUND)
     }
 
     const updated = updateAddressDto.toEntity()
