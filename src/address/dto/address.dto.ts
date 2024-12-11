@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Exclude, Transform } from 'class-transformer'
+import { Transform } from 'class-transformer'
 import { IsNotEmpty, IsString } from 'class-validator'
 
 export class AddressDto {
@@ -15,16 +15,7 @@ export class AddressDto {
   })
   @IsNotEmpty()
   @IsString()
-  @Exclude()
   name: string
-
-  // @ApiProperty({
-  //   description: 'Geographical location of the address in GeoJSON format',
-  //   example: 'POINT(-46.5244254 -23.5356837)'
-  // })
-  // @IsNotEmpty()
-  // @IsString()
-  // location: string
 
   @ApiProperty({
     description: 'Coordinates of the address',
@@ -32,15 +23,6 @@ export class AddressDto {
   })
   @Transform(({ value }) => value?.coordinates)
   location: [number, number]
-
-  // @ApiProperty({
-  //   description: 'Additional details about the address (optional)',
-  //   example: 'Apartment 301, Block B'
-  // })
-  // @IsOptional()
-  // @IsString()
-  // @Exclude()
-  // details?: string
 
   constructor(partial: Partial<AddressDto>) {
     Object.assign(this, partial)
