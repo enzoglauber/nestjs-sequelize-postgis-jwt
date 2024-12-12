@@ -10,6 +10,14 @@ import { Address } from './entities/address.entity'
 export class AddressService {
   constructor(@Inject(ADDRESS_REPOSITORY) private readonly addressRepository: typeof Address) {}
 
+  private async entity(id: number) {
+    const address = await this.addressRepository.findByPk(id)
+    if (!address) {
+      throw new HttpException('Address not found', HttpStatus.NOT_FOUND)
+    }
+    return address
+  }
+
   async create(createAddressDto: CreateAddressDto) {
     const address = createAddressDto.toEntity()
     const created = await this.addressRepository.create<Address>(address)
@@ -60,15 +68,13 @@ export class AddressService {
     return addresses.map((address) => new AddressDto(address.get({ plain: true })))
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} address`
-  // }
+  async findOne(id: number) {
+    const address = await this.entity(id)
+    return new AddressDto(address.get({ plain: true }))
+  }
 
   async update(id: number, updateAddressDto: UpdateAddressDto) {
-    const address = await this.addressRepository.findByPk(id)
-    if (!address) {
-      throw new HttpException('Address not found', HttpStatus.NOT_FOUND)
-    }
+    const address = await this.entity(id)
 
     const updated = updateAddressDto.toEntity()
     await address.update(updated)

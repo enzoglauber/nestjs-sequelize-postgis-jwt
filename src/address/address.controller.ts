@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common'
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger'
 import { AddressService } from './address.service'
 import { AddressDto } from './dto/address.dto'
 import { CreateAddressDto } from './dto/create-address.dto'
@@ -22,13 +22,17 @@ export class AddressController {
     return this.addressService.findAll()
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.addressService.findOne(+id)
-  // }
+  @Get(':id')
+  @ApiOkResponse({ type: AddressDto })
+  @ApiParam({ name: 'id', required: true })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.addressService.findOne(id)
+  }
 
   @Patch(':id')
-  @ApiCreatedResponse({ type: AddressDto })
+  @ApiOkResponse({ type: AddressDto })
+  @ApiParam({ name: 'id', required: true })
+  @ApiParam({ name: 'address', required: true })
   async update(@Param('id', ParseIntPipe) id: number, @Body() address: UpdateAddressDto) {
     return this.addressService.update(id, address)
   }
