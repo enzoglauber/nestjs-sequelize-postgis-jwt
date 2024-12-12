@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common'
-import { ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger'
 import { AddressService } from './address.service'
 import { AddressDto } from './dto/address.dto'
 import { CreateAddressDto } from './dto/create-address.dto'
@@ -12,6 +12,7 @@ export class AddressController {
 
   @Post()
   @ApiCreatedResponse({ type: AddressDto })
+  @ApiBody({ type: CreateAddressDto, description: 'Address body attributes' })
   create(@Body() address: CreateAddressDto) {
     return this.addressService.create(address)
   }
@@ -32,7 +33,7 @@ export class AddressController {
   @Patch(':id')
   @ApiOkResponse({ type: AddressDto })
   @ApiParam({ name: 'id', required: true })
-  @ApiParam({ name: 'address', required: true })
+  @ApiBody({ type: UpdateAddressDto, description: 'Address body attributes' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() address: UpdateAddressDto) {
     return this.addressService.update(id, address)
   }
