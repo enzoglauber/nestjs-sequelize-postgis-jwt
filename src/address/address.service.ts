@@ -39,10 +39,10 @@ export class AddressService {
   // ORDER BY distance ASC;
 
   async findAllWithLocation(
-    at: string = `-23.53506,-46.525199`,
-    radius: number = 0.015,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    at: string = `-23.53506,-46.525199`,
+    radius: number = 0.015
   ): Promise<AddressDto[]> {
     const locationArray = at.split(',')
     const lat = parseFloat(locationArray[0])
