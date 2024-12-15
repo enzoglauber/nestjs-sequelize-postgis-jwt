@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
-import { IsNotEmpty, IsString } from 'class-validator'
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class AddressDto {
   @ApiProperty({
@@ -27,4 +27,14 @@ export class AddressDto {
   constructor(partial: Partial<AddressDto>) {
     Object.assign(this, partial)
   }
+}
+export class AddressFullyDto extends AddressDto {
+  @ApiProperty({
+    description: 'Distance from the queried location to the address, calculated based on geographical coordinates.',
+    example: 1.5,
+    type: Number
+  })
+  @IsNumber({}, { message: 'The distance must be a valid number.' })
+  @Transform(({ value }) => value * 100, { toPlainOnly: true }) // Garante que a transformação ocorre somente ao serializar
+  distance: number
 }

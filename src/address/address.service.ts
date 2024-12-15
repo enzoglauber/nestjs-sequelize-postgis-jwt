@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { col, fn, literal } from 'sequelize'
 import { ADDRESS_REPOSITORY } from './address.providers'
-import { AddressDto } from './dto/address.dto'
+import { AddressDto, AddressFullyDto } from './dto/address.dto'
 import { CreateAddressDto } from './dto/create-address.dto'
 import { UpdateAddressDto } from './dto/update-address.dto'
 import { Address } from './entities/address.entity'
@@ -41,13 +41,10 @@ export class AddressService {
   async findAllWithLocation(
     page: number = 1,
     limit: number = 10,
-    at: string = `-23.53506,-46.525199`,
+    at?: [number, number],
     radius: number = 0.015
-  ): Promise<AddressDto[]> {
-    const locationArray = at.split(',')
-    const lat = parseFloat(locationArray[0])
-    const lng = parseFloat(locationArray[1])
-
+  ): Promise<AddressFullyDto[]> {
+    const [lat, lng] = at
     const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
     const distance = fn('ST_Distance', col('location'), location)
 
@@ -60,7 +57,7 @@ export class AddressService {
       offset: (page - 1) * limit
     })
 
-    return addresses.map((address) => new AddressDto(address.get({ plain: true })))
+    return addresses.map((address) => new AddressFullyDto(address.get({ plain: true })))
   }
 
   async findOne(id: number) {

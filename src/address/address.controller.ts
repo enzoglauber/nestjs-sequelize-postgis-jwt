@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, ParseFilePipe, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ParseAtPipe } from 'src/core/pipes/parse-at.pipe'
+import { ParseRadiusPipe } from 'src/core/pipes/parse-radius.pipe'
 import { AddressService } from './address.service'
-import { AddressDto } from './dto/address.dto'
+import { AddressDto, AddressFullyDto } from './dto/address.dto'
 import { CreateAddressDto } from './dto/create-address.dto'
 import { UpdateAddressDto } from './dto/update-address.dto'
 
@@ -25,22 +27,26 @@ export class AddressController {
 
   @Get('/location')
   @ApiOperation({
-    description: 'List address with location'
+    description: 'List addresses near a location with radius'
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'address listed with location'
+  @ApiQuery({ name: 'page', description: 'Start from 1 to X', required: false })
+  @ApiQuery({ name: 'limit', description: 'Number of elements in results', required: false })
+  @ApiQuery({
+    name: 'at',
+    description: 'Coordinates in the format lat,long (e.g., -23.53506,-46.525199)',
+    type: String
   })
-  @ApiQuery({ name: 'page', description: 'start from 1 to X' })
-  @ApiQuery({ name: 'limit', description: 'number of element in results' })
-  @ApiQuery({ name: 'at', description: 'lat,long', required: false })
-  @ApiQuery({ name: 'radius', description: 'radius to search', required: false })
-  @ApiOkResponse({ type: AddressDto, isArray: true })
+  @ApiQuery({
+    name: 'radius',
+    description: 'Radius in kilometers to search for addresses',
+    type: Number
+  })
+  @ApiOkResponse({ type: AddressFullyDto, isArray: true, description: 'Addresses listed successfully with location details.' })
   async findAllWithLocation(
     @Query('page', ParseIntPipe) page = 1,
     @Query('limit', ParseIntPipe) limit = 10,
-    @Query('at') at?: string,
-    @Query('radius', ParseFilePipe) radius?: number
+    @Query('at', ParseAtPipe) at: [number, number],
+    @Query('radius', ParseRadiusPipe) radius: number
   ) {
     return this.addressService.findAllWithLocation(page, limit, at, radius)
   }
