@@ -1,7 +1,7 @@
 import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript'
 import { Fn } from 'sequelize/types/utils'
 import { User } from 'src/user/entities/user.entity'
-@Table({ timestamps: true })
+@Table({ tableName: 'address', timestamps: true })
 export class Address extends Model {
   @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
   id: number

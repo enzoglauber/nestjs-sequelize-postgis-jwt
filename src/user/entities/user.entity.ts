@@ -2,7 +2,10 @@ import { Exclude } from 'class-transformer'
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
 import { Address } from 'src/address/entities/address.entity'
 
-@Table({ timestamps: true })
+@Table({
+  tableName: 'user',
+  timestamps: true
+})
 export class User extends Model {
   @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
   id: number
