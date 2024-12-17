@@ -1,17 +1,21 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
-import { ApiOkResponse } from '@nestjs/swagger'
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { UserDto } from './dto/user.dto'
 import { User } from './entities/user.entity'
 import { UserService } from './user.service'
 
 @Controller('user')
+@ApiTags('Users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto)
+  @ApiCreatedResponse({ type: UserDto })
+  @ApiBody({ type: CreateUserDto, description: 'User body attributes' })
+  create(@Body() user: CreateUserDto) {
+    return this.userService.create(user)
   }
 
   @Get()
