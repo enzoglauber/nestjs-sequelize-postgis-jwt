@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { Address } from 'src/address/entities/address.entity'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { CreateUserDto } from './dto/create-user.dto'
@@ -17,6 +17,14 @@ export class UserService {
     // this.jwtPrivateKey = this.configService.jwtConfig.privateKey
   }
 
+  private async entity(id: number) {
+    const user = await this.userRepository.findByPk(id, { include: [Address] })
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+    }
+    return user
+  }
+
   async create(createUserDto: CreateUserDto) {
     const user = createUserDto.toEntity()
     user.password = await this.hashingService.hash(user.password)
@@ -29,8 +37,9 @@ export class UserService {
     return users.map((user) => new UserDto(user.get({ plain: true })))
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`
+  async findOne(id: number) {
+    const user = await this.entity(id)
+    return new UserDto(user.get({ plain: true }))
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
