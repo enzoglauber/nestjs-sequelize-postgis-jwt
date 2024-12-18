@@ -18,17 +18,16 @@ export class UserService {
   }
 
   private async entity(id: number) {
-    const user = await this.userRepository.findByPk(id, { include: [Address] })
+    const user = await this.userRepository.findByPk<User>(id, { include: [Address] })
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND)
     }
     return user
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const user = createUserDto.toEntity()
+  async create(user: CreateUserDto) {
     user.password = await this.hashingService.hash(user.password)
-    const created = await this.userRepository.create<User>(user)
+    const created = await this.userRepository.create<User>({ ...user })
     return new UserDto(created.get({ plain: true }))
   }
 
@@ -42,11 +41,16 @@ export class UserService {
     return new UserDto(user.get({ plain: true }))
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`
+  async update(id: number, updated: UpdateUserDto) {
+    const user = await this.entity(id)
+
+    await user.update({ ...updated })
+    return new UserDto(user.get({ plain: true }))
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`
+  async delete(id: number) {
+    const user = await this.entity(id)
+    await user.destroy()
+    return new UserDto(user.get({ plain: true }))
   }
 }
