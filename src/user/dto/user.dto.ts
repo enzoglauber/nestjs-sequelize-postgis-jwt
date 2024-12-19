@@ -1,7 +1,7 @@
-import { Exclude } from 'class-transformer'
+import { Exclude, Transform } from 'class-transformer'
 
 import { ApiProperty } from '@nestjs/swagger'
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator'
+import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator'
 import { AddressDto } from 'src/address/dto/address.dto'
 
 export class UserDto {
@@ -63,4 +63,15 @@ export class UserDto {
       this.addresses = partial.addresses.map((address) => new AddressDto(address))
     }
   }
+}
+
+export class UserFullyDto extends UserDto {
+  @ApiProperty({
+    description: 'Distance from the queried location to the address, calculated based on geographical coordinates.',
+    example: 1.5,
+    type: Number
+  })
+  @IsNumber({}, { message: 'The distance must be a valid number.' })
+  @Transform(({ value }) => value * 100, { toPlainOnly: true })
+  distance: number
 }

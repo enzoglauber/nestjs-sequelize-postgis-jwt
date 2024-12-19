@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common'
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger'
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ParseAtPipe } from 'src/core/pipes/parse-at.pipe'
+import { ParseRadiusPipe } from 'src/core/pipes/parse-radius.pipe'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
-import { UserDto } from './dto/user.dto'
+import { UserDto, UserFullyDto } from './dto/user.dto'
 import { User } from './entities/user.entity'
 import { UserService } from './user.service'
 
@@ -19,9 +21,30 @@ export class UserController {
   }
 
   @Get()
+  @ApiOperation({
+    description: 'List users with addresses near a location with radius'
+  })
+  @ApiQuery({ name: 'page', description: 'Start from 1 to X', required: false })
+  @ApiQuery({ name: 'limit', description: 'Number of elements in results', required: false })
+  @ApiQuery({
+    name: 'at',
+    description: 'Coordinates in the format lat,long (e.g., -23.53506,-46.525199)',
+    type: String
+  })
+  @ApiQuery({
+    name: 'radius',
+    description: `Radius in kilometers to search for user's addresses`,
+    type: Number
+  })
+  @ApiOkResponse({ type: UserFullyDto, isArray: true, description: `User's Addresses listed successfully with location details.` })
   @ApiOkResponse({ type: User, isArray: true })
-  async findAll() {
-    return this.userService.findAll()
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('at', ParseAtPipe) at: [number, number],
+    @Query('radius', ParseRadiusPipe) radius: number
+  ) {
+    return this.userService.findAll(page, limit, at, radius)
   }
 
   @Get(':id')
