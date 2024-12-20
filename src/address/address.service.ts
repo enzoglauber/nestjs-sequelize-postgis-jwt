@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { col, fn, literal } from 'sequelize'
+import { User } from 'src/user/entities/user.entity'
 import { ADDRESS_REPOSITORY } from './address.providers'
 import { AddressDto, AddressFullyDto } from './dto/address.dto'
 import { CreateAddressDto } from './dto/create-address.dto'
@@ -51,11 +52,21 @@ export class AddressService {
     const attributes: any[] = [...Object.keys(Address.getAttributes()), [distance, 'distance']]
     const addresses = await Address.findAll({
       attributes,
+      include: [{ model: User, where: null }],
+      // include: [{ model: User, where: { email: 'user1@example.com' } }],
       where: fn('ST_DWithin', col('location'), location, radius),
       order: [[literal('"distance"'), 'ASC']],
       limit,
       offset: (page - 1) * limit
     })
+
+    // const { Op } = require('sequelize')
+    // Post.findAll({
+    //   where: {
+    //     [Op.and]: [{ authorId: 12 }, { status: 'active' }]
+    //   }
+    // })
+    // // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 
     return addresses.map((address) => new AddressFullyDto(address.get({ plain: true })))
   }

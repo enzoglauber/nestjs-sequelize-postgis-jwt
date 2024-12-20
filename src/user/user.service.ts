@@ -1,6 +1,4 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
-import { log } from 'node:console'
-import { col, fn, literal } from 'sequelize'
 import { Address } from 'src/address/entities/address.entity'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { CreateUserDto } from './dto/create-user.dto'
@@ -8,6 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto'
 import { UserDto } from './dto/user.dto'
 import { User } from './entities/user.entity'
 import { USER_REPOSITORY } from './users.providers'
+// import { Op } from 'sequelize'
 
 @Injectable()
 export class UserService {
@@ -33,18 +32,69 @@ export class UserService {
     return new UserDto(created.get({ plain: true }))
   }
 
-  async findAll(page: number = 1, limit: number = 10, at?: [number, number], radius: number = 0.015): Promise<UserDto[]> {
-    const [lat, lng] = at
-    const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
-    const distance = fn('ST_Distance', col('location'), location)
-    const attributes: any[] = [...Object.keys(Address.getAttributes()), [distance, 'distance']]
+  async findAll(page: number = 1, limit: number = 10): Promise<UserDto[]> {
+    const users = await this.userRepository.findAll({
+      limit,
+      offset: (page - 1) * limit,
+      // where: {
+      //   [Op.or]
+      // }
+      include: [
+        {
+          model: Address,
+          required: false
+        }
+      ]
+    })
 
-    log('attributes', attributes, radius)
-
-    const users = await this.userRepository.findAll({ limit, offset: (page - 1) * limit, include: [Address] })
-    // const users = await this.userRepository.findAll({ include: [Address] })
     return users.map((user) => new UserDto(user.get({ plain: true })))
   }
+
+  // async findAll(page: number = 1, limit: number = 10, at?: [number, number], radius: number = 0.015): Promise<UserDto[]> {
+  //   const [lat, lng] = at || []
+  //   const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
+  //   const distance = fn('ST_Distance', col('addresses.location'), location)
+
+  //   const users = await this.userRepository.findAll({
+  //     limit,
+  //     offset: (page - 1) * limit,
+  //     include: [
+  //       {
+  //         model: Address,
+  //         required: true,
+  //         attributes: {
+  //           include: [[distance, 'distance']]
+  //         },
+  //         where: fn('ST_DWithin', col('addresses.location'), location, radius)
+  //       }
+  //     ],
+  //     order: [[literal('"addresses.distance"'), 'ASC']] // Certifique-se de usar aspas adequadas para o alias
+  //   })
+
+  //   return users.map((user) => new UserDto(user.get({ plain: true })))
+  // }
+
+  // async findAll(page: number = 1, limit: number = 10, at?: [number, number], radius: number = 0.015): Promise<UserDto[]> {
+  //   const [lat, lng] = at || []
+  //   const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
+  //   const distance = fn('ST_Distance', col('Addresses.location'), location)
+
+  //   const users = await this.userRepository.findAll({
+  //     limit,
+  //     offset: (page - 1) * limit,
+  //     include: [
+  //       {
+  //         model: Address,
+  //         required: true, // Filtra usuários com endereço correspondente
+  //         attributes: [...Object.keys(Address.getAttributes()), [distance, 'distance']],
+  //         where: fn('ST_DWithin', col('Addresses.location'), location, radius)
+  //       }
+  //     ],
+  //     order: [[literal('"Addresses.distance"'), 'ASC']] // Ordena pelo endereço mais próximo
+  //   })
+
+  //   return users.map((user) => new UserDto(user.get({ plain: true })))
+  // }
 
   async findOne(id: number) {
     const user = await this.entity(id)
