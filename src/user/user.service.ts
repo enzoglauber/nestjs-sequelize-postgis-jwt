@@ -96,6 +96,14 @@ export class UserService {
   //   return users.map((user) => new UserDto(user.get({ plain: true })))
   // }
 
+  async findByEmail(email: string) {
+    const user = await this.userRepository.findOne<User>({ where: { email }, include: [Address] })
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+    }
+    return new UserDto(user.get({ plain: true }))
+  }
+
   async findOne(id: number) {
     const user = await this.entity(id)
     return new UserDto(user.get({ plain: true }))
