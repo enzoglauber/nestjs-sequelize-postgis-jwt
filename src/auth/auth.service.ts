@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
+import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { UserService } from 'src/user/user.service'
 
 @Injectable()
@@ -48,25 +49,14 @@ export class AuthService {
   //   }
   // }
 
-  // async signUp(signUpDto: SignUpDto) {
-  //   const hashedPassword = await this.hashingService.hash(signUpDto.password)
-  //   const [userWithEmail] = await this.drizzleService.db.select().from(schema.users).where(eq(schema.users.email, signUpDto.email))
+  async signUp(signUpDto: CreateUserDto) {
+    const userWithEmail = await this.userService.findByEmail(signUpDto.email)
+    if (userWithEmail) {
+      throw new BadRequestException('Email already used')
+    }
 
-  //   if (userWithEmail) {
-  //     throw new BadRequestException('Email already used')
-  //   }
-
-  //   const [user] = await this.drizzleService.db
-  //     .insert(schema.users)
-  //     .values({
-  //       ...signUpDto,
-  //       password: hashedPassword
-  //     })
-  //     .returning()
-
-  //   delete user.password
-  //   return user
-  // }
+    return await this.userService.create(signUpDto)
+  }
 
   public async signIn(user: UserPayload): Promise<{
     accessToken: string

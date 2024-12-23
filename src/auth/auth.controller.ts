@@ -1,10 +1,12 @@
-import { Controller, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common'
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Body, Controller, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Response } from 'express'
+import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { SignInResponseDto } from './dto/sign-in-response.dto'
 import { SignInDto } from './dto/sign-in.dto'
+import { SignUpResponseDto } from './dto/sign-up-response.dto'
 import { LocalGuard } from './guards/local.guard'
 import { RequestWithUser } from './interfaces/request-with-user'
 
@@ -29,29 +31,30 @@ export class AuthController {
   })
   async login(@Req() request: RequestWithUser, @Res() response: Response) {
     const { accessToken, refreshToken } = await this.authService.signIn(request.user)
+    // await this.authService.signIn(request.user)
 
-    response.cookie('access_token', accessToken, { httpOnly: true })
-    response.cookie('refresh_token', refreshToken, { httpOnly: true })
-    return response.send({ message: 'Login successful' })
+    // response.cookie('access_token', accessToken, { httpOnly: true })
+    // response.cookie('refresh_token', refreshToken, { httpOnly: true })
+    return response.send({ message: 'Login successful', accessToken, refreshToken })
   }
 
-  // @Public()
-  // @Post('signup')
-  // @HttpCode(201)
-  // @ApiOperation({
-  //   summary: 'Sign up a new user',
-  //   description:
-  //     'This endpoint allows a new user to sign up by providing necessary registration details. On successful registration, user details are returned.'
-  // })
-  // @ApiBody({ type: CreateUserDto, description: 'User sign-up details' })
-  // @ApiCreatedResponse({
-  //   description: 'User successfully registered',
-  //   type: SignUpResponseDto
-  // })
-  // async signUp(@Body() signUpDto: CreateUserDto) {
-  //   const user = await this.authService.signUp(signUpDto)
-  //   return user
-  // }
+  @Public()
+  @Post('signup')
+  @HttpCode(201)
+  @ApiOperation({
+    summary: 'Sign up a new user',
+    description:
+      'This endpoint allows a new user to sign up by providing necessary registration details. On successful registration, user details are returned.'
+  })
+  @ApiBody({ type: CreateUserDto, description: 'User sign-up details' })
+  @ApiCreatedResponse({
+    description: 'User successfully registered',
+    type: SignUpResponseDto
+  })
+  async signUp(@Body() signUpDto: CreateUserDto) {
+    const user = await this.authService.signUp(signUpDto)
+    return user
+  }
 
   // @Get('me')
   // @UseGuards(JwtGuard)
