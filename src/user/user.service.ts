@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { Address } from 'src/address/entities/address.entity'
 import { HashingService } from 'src/core/hashing/hashing.service'
+import { LoggerService } from 'src/core/logger/logger.service'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UserDto } from './dto/user.dto'
@@ -12,7 +13,8 @@ import { USER_REPOSITORY } from './users.providers'
 export class UserService {
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepository: typeof User,
-    private readonly hashingService: HashingService
+    private readonly hashingService: HashingService,
+    private readonly loggerService: LoggerService
     // private readonly configService: ConfigService
   ) {
     // this.jwtPrivateKey = this.configService.jwtConfig.privateKey
@@ -94,6 +96,35 @@ export class UserService {
   //   })
 
   //   return users.map((user) => new UserDto(user.get({ plain: true })))
+  // }
+
+  // public async updateRefreshToken(id: number, token: string): Promise<void> {
+  //   const user = await this.findOne(id)
+  //   if (!user) {
+  //     throw new NotFoundException(`User not found by id: ${id}`)
+  //   }
+
+  //   const refreshToken = await this.hashingService.hash(token)
+  //   await this.update(id, { refreshToken })
+  // }
+
+  // public async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<User> {
+  //   const user = await this.entity(id)
+
+  //   if (!user) {
+  //     this.loggerService.error(`User not found by id: ${id}`)
+  //     throw new NotFoundException('User not found by id')
+  //   }
+
+  //   const tokenValid = await this.hashingService.compare(refreshToken, user.refreshToken)
+  //   this.loggerService.log(id, refreshToken, user.refreshToken, `=`, tokenValid)
+
+  //   if (!tokenValid) {
+  //     this.loggerService.error(`Invalid refresh token for user id: ${id}`)
+  //     throw new NotFoundException('Invalid refresh token')
+  //   }
+
+  //   return user
   // }
 
   async findByEmail(email: string) {

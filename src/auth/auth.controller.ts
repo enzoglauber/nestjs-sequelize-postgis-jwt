@@ -1,11 +1,12 @@
-import { Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common'
+import { Controller, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { Request } from 'express'
-import { CreateUserDto } from 'src/user/dto/create-user.dto'
+import { Response } from 'express'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { SignInResponseDto } from './dto/sign-in-response.dto'
+import { SignInDto } from './dto/sign-in.dto'
 import { LocalGuard } from './guards/local.guard'
+import { RequestWithUser } from './interfaces/request-with-user'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -17,18 +18,21 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(LocalGuard)
   @ApiOperation({
-    summary: 'Sign in a user',
+    summary: 'Login a user',
     description:
       'This endpoint allows a user to sign in by providing valid credentials. On successful authentication, a token is generated and returned.'
   })
-  @ApiBody({ type: CreateUserDto, description: 'User sign-in credentials' })
+  @ApiBody({ type: SignInDto, description: 'User sign-in credentials' })
   @ApiOkResponse({
     description: 'User successfully logged in',
     type: SignInResponseDto
   })
-  async signIn(@Req() request: Request) {
-    const userId = request.user.id
-    return this.authService.generateTokens(userId)
+  async login(@Req() request: RequestWithUser, @Res() response: Response) {
+    const { accessToken, refreshToken } = await this.authService.signIn(request.user)
+
+    response.cookie('access_token', accessToken, { httpOnly: true })
+    response.cookie('refresh_token', refreshToken, { httpOnly: true })
+    return response.send({ message: 'Login successful' })
   }
 
   // @Public()

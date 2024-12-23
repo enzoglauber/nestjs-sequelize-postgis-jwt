@@ -1,19 +1,37 @@
 import { Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { APP_GUARD } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
-import { UserModule } from 'src/user/user.module'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
-import { JwtCookieStrategy } from './strategies/jwt.strategy'
+import { JwtGuard } from './guards/jwt.guard'
+// import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy'
+import { JwtStrategy } from './strategies/jwt.strategy'
 import { LocalStrategy } from './strategies/local.strategy'
 
 @Module({
-  imports: [UserModule, PassportModule, JwtModule],
+  imports: [
+    JwtModule.registerAsync({
+      useFactory: async (configService: ConfigService) => {
+        return {
+          secret: configService.get<string>('JWT_TOKEN'),
+          signOptions: {
+            expiresIn: configService.get<string>('JWT_TOKEN_TTL')
+          }
+        }
+      },
+      inject: [ConfigService]
+    })
+  ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard
+    },
     AuthService,
     LocalStrategy,
-    JwtCookieStrategy
-    // JwtRefreshStrategy, GoogleStrategy
+    // JwtRefreshStrategy,
+    JwtStrategy
   ],
   controllers: [AuthController]
 })
