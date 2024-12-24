@@ -2,7 +2,7 @@
 ##
 
 ```bash
-  npm install @nestjs/sequelize @nestjs/swagger @nestjs/config @nestjs/jwt @nestjs/passport passport-local passport-jwt sequelize sequelize-typescript pg pg-hstore class-transformer class-validator dotenv bcrypt  
+  npm install @nestjs/sequelize @nestjs/swagger @nestjs/config @nestjs/jwt @nestjs/passport passport-local passport-jwt sequelize sequelize-typescript pg pg-hstore class-transformer class-validator dotenv bcrypt joi
 
   npm install --save-dev @types/sequelize sequelize-cli ts-node tsconfig-paths
 ```

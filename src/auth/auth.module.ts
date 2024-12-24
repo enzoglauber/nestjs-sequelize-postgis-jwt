@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { JwtGuard } from './guards/jwt.guard'
 // import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy'
+import { log } from 'node:console'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { LocalStrategy } from './strategies/local.strategy'
 
@@ -13,6 +14,9 @@ import { LocalStrategy } from './strategies/local.strategy'
   imports: [
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => {
+        log(configService.get<string>('JWT_TOKEN'))
+        log(configService.get<string>('JWT_TOKEN_TTL'))
+        log(`configService.get<string>('JWT_TOKEN_TTL')`)
         return {
           secret: configService.get<string>('JWT_TOKEN'),
           signOptions: {

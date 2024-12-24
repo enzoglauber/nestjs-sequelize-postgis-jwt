@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { Public } from 'src/auth/decorators/public.decorator'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UserDto } from './dto/user.dto'
@@ -18,6 +19,7 @@ export class UserController {
     return this.userService.create(user)
   }
 
+  @Public()
   @Get()
   @ApiOperation({
     description: 'List users'
