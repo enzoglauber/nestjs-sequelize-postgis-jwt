@@ -1,11 +1,12 @@
-import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common'
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common'
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { SignInResponseDto } from './dto/sign-in-response.dto'
 import { SignInDto } from './dto/sign-in.dto'
 import { SignUpResponseDto } from './dto/sign-up-response.dto'
+import { JwtGuard } from './guards/jwt.guard'
 import { LocalGuard } from './guards/local.guard'
 import { RequestWithUser } from './interfaces/request-with-user'
 
@@ -55,19 +56,19 @@ export class AuthController {
     return await this.authService.signUp(signUpDto)
   }
 
-  // @Get('me')
-  // @UseGuards(JwtGuard)
-  // @ApiBearerAuth()
-  // @ApiOperation({
-  //   summary: 'Get current user',
-  //   description: 'This endpoint returns the current authenticated user.'
-  // })
-  // @ApiOkResponse({
-  //   description: 'Current user details'
-  // })
-  // async getMe(@Req() request: RequestWithUser) {
-  //   return request.user
-  // }
+  @Get('me')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get current user',
+    description: 'This endpoint returns the current authenticated user.'
+  })
+  @ApiOkResponse({
+    description: 'Current user details'
+  })
+  async getMe(@Req() request: RequestWithUser) {
+    return request.user
+  }
 
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(PassportLocalGuard)
