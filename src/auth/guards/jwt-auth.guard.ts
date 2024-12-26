@@ -9,7 +9,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   public handleRequest(error: any, user: any, info: any) {
-    log(`JwtAuthGuard`, error, user, info)
     if (error || !user) {
       log(info)
       throw error || new UnauthorizedException('Invalid Access Token')

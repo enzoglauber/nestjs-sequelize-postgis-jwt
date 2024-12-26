@@ -9,7 +9,7 @@ export class SignInResponseDto {
 
   @ApiProperty({
     description: 'The refresh token for the user',
-    example: 'dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4gZXhhbXBsZQ=='
+    example: 'dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4gZXhhbXBsZQ...'
   })
   readonly refreshToken: string
 }

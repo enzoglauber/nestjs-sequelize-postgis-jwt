@@ -1,6 +1,5 @@
-import { Body, Controller, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { Response } from 'express'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
@@ -29,13 +28,14 @@ export class AuthController {
     description: 'User successfully logged in',
     type: SignInResponseDto
   })
-  async login(@Req() request: RequestWithUser, @Res() response: Response) {
-    const { accessToken, refreshToken } = await this.authService.signIn(request.user)
+  async login(@Req() request: RequestWithUser) {
+    const { accessToken, refreshToken } = await this.authService.login(request.user)
+    // const { accessToken } = await this.authService.signIn(request.user)
     // await this.authService.signIn(request.user)
 
     // response.cookie('access_token', accessToken, { httpOnly: true })
     // response.cookie('refresh_token', refreshToken, { httpOnly: true })
-    return response.send({ message: 'Login successful', accessToken, refreshToken })
+    return { accessToken, refreshToken }
   }
 
   @Public()
@@ -52,8 +52,7 @@ export class AuthController {
     type: SignUpResponseDto
   })
   async signUp(@Body() signUpDto: CreateUserDto) {
-    const user = await this.authService.signUp(signUpDto)
-    return user
+    return await this.authService.signUp(signUpDto)
   }
 
   // @Get('me')

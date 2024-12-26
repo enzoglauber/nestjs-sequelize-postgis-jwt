@@ -127,12 +127,9 @@ export class UserService {
   //   return user
   // }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<UserDto> | null {
     const user = await this.userRepository.findOne<User>({ where: { email }, include: [Address] })
-    // if (!user) {
-    //   throw new HttpException(`User not found by email: ${email}`, HttpStatus.NOT_FOUND)
-    // }
-    return new UserDto(user.get({ plain: true }))
+    return user ? new UserDto(user.get({ plain: true })) : null
   }
 
   async findOne(id: number) {

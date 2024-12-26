@@ -1,7 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { log } from 'node:console'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
@@ -51,15 +50,15 @@ export class AuthService {
   // }
 
   async signUp(signUpDto: CreateUserDto) {
-    const userWithEmail = await this.userService.findByEmail(signUpDto.email)
-    if (userWithEmail) {
-      throw new BadRequestException('Email already used')
+    const user = await this.userService.findByEmail(signUpDto.email)
+    if (user) {
+      throw new HttpException(`User already registered: ${signUpDto.email}`, HttpStatus.NOT_FOUND)
     }
 
     return await this.userService.create(signUpDto)
   }
 
-  public async signIn(user: UserPayload): Promise<{
+  public async login(user: UserPayload): Promise<{
     accessToken: string
     refreshToken: string
   }> {
@@ -74,10 +73,6 @@ export class AuthService {
   }
 
   private async generateAccessToken(userPayload: UserPayload): Promise<string> {
-    log(this.configService.get<string>('JWT_TOKEN'))
-    log(this.configService.get<string>('JWT_TOKEN_TTL'))
-    log(`generateAccessToken`)
-
     return this.jwtService.signAsync(
       {
         sub: userPayload.id,
@@ -91,10 +86,6 @@ export class AuthService {
   }
 
   private async generateRefreshToken(userPayload: UserPayload): Promise<string> {
-    log(this.configService.get<string>('JWT_REFRESH'))
-    log(this.configService.get<string>('JWT_REFRESH_TTL'))
-    log(`generateRefreshToken`)
-
     return this.jwtService.signAsync(
       {
         sub: userPayload.id,
