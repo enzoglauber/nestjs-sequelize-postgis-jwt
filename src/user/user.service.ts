@@ -15,10 +15,7 @@ export class UserService {
     @Inject(USER_REPOSITORY) private readonly userRepository: typeof User,
     private readonly hashingService: HashingService,
     private readonly loggerService: LoggerService
-    // private readonly configService: ConfigService
-  ) {
-    // this.jwtPrivateKey = this.configService.jwtConfig.privateKey
-  }
+  ) {}
 
   private async entity(id: number) {
     const user = await this.userRepository.findByPk<User>(id, { include: [Address] })
@@ -51,81 +48,6 @@ export class UserService {
 
     return users.map((user) => new UserDto(user.get({ plain: true })))
   }
-
-  // async findAll(page: number = 1, limit: number = 10, at?: [number, number], radius: number = 0.015): Promise<UserDto[]> {
-  //   const [lat, lng] = at || []
-  //   const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
-  //   const distance = fn('ST_Distance', col('addresses.location'), location)
-
-  //   const users = await this.userRepository.findAll({
-  //     limit,
-  //     offset: (page - 1) * limit,
-  //     include: [
-  //       {
-  //         model: Address,
-  //         required: true,
-  //         attributes: {
-  //           include: [[distance, 'distance']]
-  //         },
-  //         where: fn('ST_DWithin', col('addresses.location'), location, radius)
-  //       }
-  //     ],
-  //     order: [[literal('"addresses.distance"'), 'ASC']] // Certifique-se de usar aspas adequadas para o alias
-  //   })
-
-  //   return users.map((user) => new UserDto(user.get({ plain: true })))
-  // }
-
-  // async findAll(page: number = 1, limit: number = 10, at?: [number, number], radius: number = 0.015): Promise<UserDto[]> {
-  //   const [lat, lng] = at || []
-  //   const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
-  //   const distance = fn('ST_Distance', col('Addresses.location'), location)
-
-  //   const users = await this.userRepository.findAll({
-  //     limit,
-  //     offset: (page - 1) * limit,
-  //     include: [
-  //       {
-  //         model: Address,
-  //         required: true, // Filtra usuários com endereço correspondente
-  //         attributes: [...Object.keys(Address.getAttributes()), [distance, 'distance']],
-  //         where: fn('ST_DWithin', col('Addresses.location'), location, radius)
-  //       }
-  //     ],
-  //     order: [[literal('"Addresses.distance"'), 'ASC']] // Ordena pelo endereço mais próximo
-  //   })
-
-  //   return users.map((user) => new UserDto(user.get({ plain: true })))
-  // }
-
-  // public async updateRefreshToken(id: number, token: string): Promise<void> {
-  //   const user = await this.findOne(id)
-  //   if (!user) {
-  //     throw new NotFoundException(`User not found by id: ${id}`)
-  //   }
-
-  //   const refreshToken = await this.hashingService.hash(token)
-  //   await this.update(id, { refreshToken })
-  // }
-
-  // public async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<User> {
-  //   const user = await this.entity(id)
-
-  //   if (!user) {
-  //     this.loggerService.error(`User not found by id: ${id}`)
-  //     throw new NotFoundException('User not found by id')
-  //   }
-
-  //   const tokenValid = await this.hashingService.compare(refreshToken, user.refreshToken)
-  //   this.loggerService.log(id, refreshToken, user.refreshToken, `=`, tokenValid)
-
-  //   if (!tokenValid) {
-  //     this.loggerService.error(`Invalid refresh token for user id: ${id}`)
-  //     throw new NotFoundException('Invalid refresh token')
-  //   }
-
-  //   return user
-  // }
 
   async findByEmail(email: string): Promise<UserDto> | null {
     const user = await this.userRepository.findOne<User>({ where: { email }, include: [Address] })

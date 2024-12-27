@@ -1,9 +1,11 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { log } from 'node:console'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
+import { UserDto } from 'src/user/dto/user.dto'
 import { UserService } from 'src/user/user.service'
 
 @Injectable()
@@ -18,7 +20,79 @@ export class AuthService {
     this.loggerService.setContext(AuthService.name)
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
+  public async veryifyUserRefreshToken(refreshToken: string, userId: number): Promise<UserPayload | null> {
+    const user = await this.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
+
+    if (!user) {
+      this.loggerService.error('User not found')
+      return null
+    }
+
+    return {
+      id: user.id,
+      email: user.email
+    }
+  }
+
+  async signUp(signUpDto: CreateUserDto) {
+    const user = await this.userService.findByEmail(signUpDto.email)
+    if (user) {
+      throw new HttpException(`User already registered: ${signUpDto.email}`, HttpStatus.NOT_FOUND)
+    }
+
+    return await this.userService.create(signUpDto)
+  }
+
+  public async login(user: UserPayload): Promise<{
+    accessToken: string
+    refreshToken: string
+  }> {
+    const { accessToken, refreshToken } = await this.getTokens(user)
+
+    await this.userService.update(user.id, { refreshToken })
+
+    return {
+      accessToken,
+      refreshToken
+    }
+  }
+
+  private async getTokens(user: UserPayload) {
+    const [accessToken, refreshToken] = await Promise.all([this.getAccessToken(user), this.getRefreshToken(user)])
+
+    return {
+      accessToken,
+      refreshToken
+    }
+  }
+
+  private async getAccessToken(userPayload: UserPayload): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        sub: userPayload.id,
+        email: userPayload.email
+      },
+      {
+        secret: this.configService.get('JWT_TOKEN'),
+        expiresIn: this.configService.get('JWT_TOKEN_TTL')
+      }
+    )
+  }
+
+  private async getRefreshToken(userPayload: UserPayload): Promise<string> {
+    return this.jwtService.signAsync(
+      {
+        sub: userPayload.id,
+        email: userPayload.email
+      },
+      {
+        secret: this.configService.get('JWT_REFRESH'),
+        expiresIn: this.configService.get('JWT_REFRESH_TTL')
+      }
+    )
+  }
+
+  async validate(email: string, password: string): Promise<any> {
     const user = await await this.userService.findByEmail(email)
 
     if (!user) {
@@ -35,100 +109,74 @@ export class AuthService {
     return user
   }
 
-  // public async veryifyUserRefreshToken(refreshToken: string, userId: number): Promise<UserPayload | null> {
-  //   const user = await this.userService.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
+  async refreshTokens(userId: number, refreshToken: string) {
+    log(`refreshTokens`, userId, refreshToken)
+    const user = await this.userService.findOne(userId)
+    if (!user || !user.refreshToken) throw new ForbiddenException('Access Denied')
 
-  //   if (!user) {
-  //     this.loggerService.error('User not found')
-  //     return null
-  //   }
-
-  //   return {
-  //     id: user.id,
-  //     email: user.email
-  //   }
-  // }
-
-  async signUp(signUpDto: CreateUserDto) {
-    const user = await this.userService.findByEmail(signUpDto.email)
-    if (user) {
-      throw new HttpException(`User already registered: ${signUpDto.email}`, HttpStatus.NOT_FOUND)
+    const refreshTokenMatches = await this.hashingService.compare(user.refreshToken, refreshToken)
+    if (!refreshTokenMatches) {
+      this.loggerService.error('Tokens do not match', { userId, userRefreshToken: user.refreshToken, receivedRefreshToken: refreshToken })
+      throw new ForbiddenException('Tokens do not match')
     }
+    const tokens = await this.getTokens(user)
+    await this.updateRefreshToken(user.id, tokens.refreshToken)
 
-    return await this.userService.create(signUpDto)
+    return tokens
   }
 
-  public async login(user: UserPayload): Promise<{
-    accessToken: string
-    refreshToken: string
-  }> {
-    const [accessToken, refreshToken] = await Promise.all([this.generateAccessToken(user), this.generateRefreshToken(user)])
+  private async updateRefreshToken(userId: number, refreshToken: string) {
+    const hashedRefreshToken = await this.hashingService.hash(refreshToken)
 
-    // await this.userService.updateRefreshToken(user.id, refreshToken)
+    await this.userService.update(userId, {
+      refreshToken: hashedRefreshToken
+    })
+  }
+
+  public async refreshToken(userId: number, refreshToken: string) {
+    this.loggerService.log(`refreshToken`, userId, refreshToken)
+    const user = await this.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
+
+    if (!user) {
+      this.loggerService.error('User not found')
+      return null
+    }
 
     return {
-      accessToken,
-      refreshToken
+      id: user.id,
+      email: user.email
     }
   }
 
-  private async generateAccessToken(userPayload: UserPayload): Promise<string> {
-    return this.jwtService.signAsync(
-      {
-        sub: userPayload.id,
-        email: userPayload.email
-      },
-      {
-        secret: this.configService.get('JWT_TOKEN'),
-        expiresIn: this.configService.get('JWT_TOKEN_TTL')
-      }
-    )
+  async logout(userId: number) {
+    this.userService.update(userId, { refreshToken: null })
   }
 
-  private async generateRefreshToken(userPayload: UserPayload): Promise<string> {
-    return this.jwtService.signAsync(
-      {
-        sub: userPayload.id,
-        email: userPayload.email
-      },
-      {
-        secret: this.configService.get('JWT_REFRESH'),
-        expiresIn: this.configService.get('JWT_REFRESH_TTL')
-      }
-    )
+  // private async updateRefreshToken(id: number, token: string): Promise<void> {
+  //   const user = await this.userService.findOne(id)
+  //   if (!user) {
+  //     throw new NotFoundException(`User not found by id: ${id}`)
+  //   }
+
+  //   const refreshToken = await this.hashingService.hash(token)
+  //   await this.userService.update(id, { refreshToken })
+  // }
+
+  private async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<UserDto> {
+    const user = await this.userService.findOne(id)
+    if (!user) {
+      this.loggerService.error(`User not found with id: ${id}`)
+      throw new NotFoundException('User not found')
+    }
+
+    const isValid = await this.hashingService.compare(refreshToken, user.refreshToken)
+    if (!isValid) {
+      this.loggerService.error('Invalid refresh token')
+      throw new ForbiddenException('Invalid refresh token')
+    }
+
+    return user
   }
-  // public async validateUser({ email, password }: AuthInput): Promise<UserPayload | null> {
-  //   const user = await this.userService.findByEmail(email)
-
-  //   if (!user) {
-  //     this.loggerService.error('User not found')
-  //     return null
-  //   }
-
-  //   if (user.password !== password) {
-  //     this.loggerService.error('Invalid password attempt')
-  //     return null
-  //   }
-
-  //   return {
-  //     id: user.id,
-  //     email: user.email
-  //   }
-  // }
-
-  // public async veryifyUserRefreshToken(refreshToken: string, userId: number): Promise<UserPayload | null> {
-  //   const user = await this.usersService.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
-
-  //   if (!user) {
-  //     this.loggerService.error('User not found')
-  //     return null
-  //   }
-
-  //   return {
-  //     id: user.id,
-  //     email: user.email
-  //   }
-  // }
 
   // public async veryifyUserEmail(email: string): Promise<UserPayload | null> {
   //   const user = await this.usersService.findOneByEmail(email).catch(() => null)
@@ -148,7 +196,7 @@ export class AuthService {
   //   accessToken: string
   //   refreshToken: string
   // }> {
-  //   const [accessToken, refreshToken] = await Promise.all([this.generateAccessToken(userPayload), this.generateRefreshToken(userPayload)])
+  //   const [accessToken, refreshToken] = await Promise.all([this.getAccessToken(userPayload), this.getRefreshToken(userPayload)])
 
   //   await this.usersService.updateRefreshToken(userPayload.id, refreshToken)
 
@@ -178,7 +226,7 @@ export class AuthService {
   //   }
   // }
 
-  // private async generateAccessToken(userPayload: UserPayload): Promise<string> {
+  // private async getAccessToken(userPayload: UserPayload): Promise<string> {
   //   return this.jwtService.signAsync(
   //     {
   //       sub: userPayload.id,
@@ -191,7 +239,7 @@ export class AuthService {
   //   )
   // }
 
-  // private async generateRefreshToken(userPayload: UserPayload): Promise<string> {
+  // private async getRefreshToken(userPayload: UserPayload): Promise<string> {
   //   return this.jwtService.signAsync(
   //     {
   //       sub: userPayload.id,

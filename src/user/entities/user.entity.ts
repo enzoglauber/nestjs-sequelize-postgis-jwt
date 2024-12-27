@@ -1,5 +1,4 @@
-import { Exclude } from 'class-transformer'
-import { Column, DataType, HasMany, IsEmail, Model, Table } from 'sequelize-typescript'
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
 import { Address } from 'src/address/entities/address.entity'
 
 @Table({
@@ -13,11 +12,12 @@ export class User extends Model {
   @Column({ type: DataType.STRING, allowNull: false })
   name: string
 
-  @IsEmail
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
   email: string
 
-  @Exclude()
+  @Column({ type: DataType.STRING, allowNull: true })
+  refreshToken: string
+
   @Column({ type: DataType.STRING, allowNull: false })
   password: string
 

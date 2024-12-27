@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('user', {
       id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       name: { type: Sequelize.STRING, allowNull: false },
       email: { type: Sequelize.STRING, unique: true, allowNull: false },
@@ -12,7 +12,7 @@ module.exports = {
       updatedAt: { type: Sequelize.DATE, defaultValue: Sequelize.fn('NOW') }
     })
 
-    await queryInterface.createTable('Addresses', {
+    await queryInterface.createTable('address', {
       id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       name: { type: Sequelize.STRING, allowNull: false },
       userId: { type: Sequelize.INTEGER, allowNull: false },
@@ -21,7 +21,7 @@ module.exports = {
       updatedAt: { type: Sequelize.DATE, defaultValue: Sequelize.fn('NOW') }
     })
 
-    await queryInterface.addConstraint('Addresses', {
+    await queryInterface.addConstraint('address', {
       fields: ['userId'],
       type: 'foreign key',
       references: { table: 'Users', field: 'id' },

@@ -28,6 +28,15 @@ export class UserDto {
   email: string
 
   @ApiProperty({
+    description: 'Refresh token of the user',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  })
+  @IsString()
+  @IsOptional()
+  @Exclude()
+  refreshToken?: string
+
+  @ApiProperty({
     description: 'Password of the user',
     example: 'X%^32La@'
   })

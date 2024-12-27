@@ -1,29 +1,36 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
-import { Request as RequestType } from 'express'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // jwtFromRequest: ExtractJwt.fromExtractors([JwtStrategy.extractJWT, ExtractJwt.fromAuthHeaderAsBearerToken()]),
       ignoreExpiration: false,
       secretOrKey: configService.get('JWT_TOKEN')
     })
   }
 
-  async validate(payload: { sub: number }) {
-    return { userId: payload.sub }
+  async validate(payload: { sub: number; username: string }) {
+    return { id: payload.sub, username: payload.username }
   }
 
-  private static extractJWT(request: RequestType): string | null {
-    if (request.cookies && 'access_token' in request.cookies && request.cookies.access_token.length > 0) {
-      return request.cookies.access_token
-    }
-    return null
-  }
+  // async validate(payload: any) {
+  //   const me = await this.userService.getMySelf(payload?.id);
+  //   if (
+  //     me &&
+  //     ArrayHelper.compareArrayElements(
+  //       me.roles.map((role) => role.name),
+  //       payload.roles.map((role) => role.name),
+  //     )
+  //   ) {
+  //     if (payload.expiresIn > moment().unix()) {
+  //       return me;
+  //     }
+  //   }
+  //   throw new UnauthorizedException();
+  // }
 }
 
 // import { Injectable } from '@nestjs/common'

@@ -1,11 +1,13 @@
-import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { log } from 'node:console'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { SignInResponseDto } from './dto/sign-in-response.dto'
 import { SignInDto } from './dto/sign-in.dto'
 import { SignUpResponseDto } from './dto/sign-up-response.dto'
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard'
 import { JwtGuard } from './guards/jwt.guard'
 import { LocalGuard } from './guards/local.guard'
 import { RequestWithUser } from './interfaces/request-with-user'
@@ -31,9 +33,6 @@ export class AuthController {
   })
   async login(@Req() request: RequestWithUser) {
     const { accessToken, refreshToken } = await this.authService.login(request.user)
-    // const { accessToken } = await this.authService.signIn(request.user)
-    // await this.authService.signIn(request.user)
-
     // response.cookie('access_token', accessToken, { httpOnly: true })
     // response.cookie('refresh_token', refreshToken, { httpOnly: true })
     return { accessToken, refreshToken }
@@ -70,25 +69,39 @@ export class AuthController {
     return request.user
   }
 
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(PassportLocalGuard)
-  // @Post('/login')
-  // public async login(@Req() request: Request, @Res() response: Response): Promise<Response<{ message: string }>> {
-  //   const { accessToken, refreshToken } = await this.authService.signIn(request.user)
-  //   response.cookie('access_token', accessToken, { httpOnly: true })
-  //   response.cookie('refresh_token', refreshToken, { httpOnly: true })
-  //   return response.send({ message: 'Login successful' })
+  // @Get('refresh')
+  // @UseGuards(JwtRefreshGuard)
+  // async refresh(@Req() request: RequestWithUser) {
+  //   const refreshToken = request.headers.authorization?.replace('Bearer ', '').trim()
+  //   log('REFRESH:::::::::::::::::: ', request.user)
+  //   const tokens = this.authService.refreshTokens(request.user.id, refreshToken)
+  //   return { message: 'Refreshed out successfully', tokens }
   // }
 
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(PassportJwtRefreshAuthGuard)
-  // @Post('/refresh')
-  // public async refresh(@Req() request: Request, @Res() response: Response): Promise<Response<{ message: string }>> {
-  //   const { accessToken, refreshToken } = await this.authService.signIn(request.user)
-  //   response.cookie('access_token', accessToken, { httpOnly: true })
-  //   response.cookie('refresh_token', refreshToken, { httpOnly: true })
-  //   return response.send({ message: 'Refresh successful' })
-  // }
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtRefreshGuard)
+  @Get('refresh')
+  public async refresh(@Req() request: RequestWithUser) {
+    log('REFRESH:::::::::::::::::: ', request.user)
+    // const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user)
+    return { message: 'Refresh successful' }
+  }
+
+  @Get('logout')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get current user',
+    description: 'This endpoint returns the current authenticated user.'
+  })
+  @ApiOkResponse({
+    description: 'Current user details'
+  })
+  async logout(@Req() request: RequestWithUser) {
+    this.authService.logout(request.user.id)
+    return { message: 'Logged out successfully' }
+  }
 
   // // @HttpCode(HttpStatus.OK)
   // // @UseGuards(GoogleAuthGuard)
@@ -115,10 +128,10 @@ export class AuthController {
   // }
 
   // @HttpCode(HttpStatus.OK)
-  // @Post('/logout')
+  // @Post('logout')
   // public async logout(@Res() response: Response): Promise<Response<{ message: string }>> {
-  //   response.clearCookie('access_token')
-  //   response.clearCookie('refresh_token')
+  //   // response.clearCookie('access_token')
+  //   // response.clearCookie('refresh_token')
   //   return response.send({ message: 'Logged out successfully' })
   // }
 }

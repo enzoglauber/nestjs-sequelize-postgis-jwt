@@ -11,8 +11,10 @@
 
 ```bash
   npx sequelize-cli migration:generate --name create-users-and-addresses
+  npx sequelize-cli migration:generate --name add-column-token-to-user
   npx sequelize-cli db:migrate
 
   npx sequelize-cli seed:generate --name seed-users-and-addresses
   npx sequelize-cli db:seed:all
 ```
+
