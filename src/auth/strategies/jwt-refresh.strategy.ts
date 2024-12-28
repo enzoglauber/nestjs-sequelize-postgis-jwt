@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { Request } from 'express'
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
+import { LoggerService } from 'src/core/logger/logger.service'
 import { AuthService } from '../auth.service'
 import { UserPayload } from '../interfaces/request-with-user'
 
@@ -10,6 +11,7 @@ import { UserPayload } from '../interfaces/request-with-user'
 export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refresh') {
   constructor(
     private readonly authService: AuthService,
+    private readonly loggerService: LoggerService,
     private readonly configService: ConfigService
   ) {
     super({
@@ -19,21 +21,28 @@ export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refre
     })
   }
 
-  async validate(
-    request: Request,
-    payload: {
-      sub: number
-      email: string
-    }
-  ): Promise<UserPayload> {
-    const refreshToken = request.get('authorization')?.replace('Bearer ', '').trim()
-    const userPayload = await this.authService.veryifyUserRefreshToken(refreshToken, payload.sub)
+  // async validate(
+  //   request: Request,
+  //   payload: {
+  //     id: number
+  //     email: string
+  //   }
+  // ): Promise<UserPayload> {
+  //   const refreshToken = request.get('authorization')?.replace('Bearer ', '').trim()
+  //   this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, payload, refreshToken)
+  //   const userPayload = await this.authService.veryifyUserRefreshToken(refreshToken, payload.id)
 
-    if (!userPayload) {
-      throw new UnauthorizedException('Invalid Refresh Token')
-    }
+  //   if (!userPayload) {
+  //     throw new UnauthorizedException('Invalid Refresh Token')
+  //   }
 
-    return userPayload
+  //   return userPayload
+  // }
+
+  async validate(req: Request, payload: UserPayload) {
+    const refreshToken = req.get('Authorization').replace('Bearer', '').trim()
+    this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, payload, refreshToken)
+    return { ...payload, refreshToken }
   }
 }
 

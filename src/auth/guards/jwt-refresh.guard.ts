@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { log } from 'console'
 import { LoggerService } from 'src/core/logger/logger.service'
@@ -10,12 +10,12 @@ export class JwtRefreshGuard extends AuthGuard('jwt-refresh') {
   }
 
   public handleRequest(error: any, user: any, info: any) {
-    log(`JwtRefreshAuthGuard`, error, user, info)
+    log(`JwtRefreshAuthGuard>>>>>>`, error, user, info)
 
-    if (error || !user) {
-      this.loggerService.error(info)
-      throw error || new UnauthorizedException('Invalid Refresh Token')
-    }
+    // if (error || !user) {
+    //   // this.loggerService.error(info)
+    //   throw error || new UnauthorizedException('Invalid Refresh Token 222')
+    // }
     return user
   }
 }

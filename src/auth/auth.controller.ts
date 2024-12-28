@@ -7,8 +7,8 @@ import { Public } from './decorators/public.decorator'
 import { SignInResponseDto } from './dto/sign-in-response.dto'
 import { SignInDto } from './dto/sign-in.dto'
 import { SignUpResponseDto } from './dto/sign-up-response.dto'
+import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard'
-import { JwtGuard } from './guards/jwt.guard'
 import { LocalGuard } from './guards/local.guard'
 import { RequestWithUser } from './interfaces/request-with-user'
 
@@ -56,7 +56,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get current user',
@@ -89,7 +89,7 @@ export class AuthController {
   }
 
   @Get('logout')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get current user',

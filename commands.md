@@ -4,7 +4,9 @@
 ```bash
   npm install @nestjs/sequelize @nestjs/swagger @nestjs/config @nestjs/jwt @nestjs/passport passport-local passport-jwt sequelize sequelize-typescript pg pg-hstore class-transformer class-validator dotenv bcrypt joi
 
-  npm install --save-dev @types/sequelize sequelize-cli ts-node tsconfig-paths
+  npm install --save-dev @types/sequelize sequelize-cli ts-node tsconfig-paths @types/passport-jwt
+
+  node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"
 ```
 
 ## Use this instead migration
