@@ -80,6 +80,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
   @Get('refresh')
   public async refresh(@Req() request: RequestWithUser) {
