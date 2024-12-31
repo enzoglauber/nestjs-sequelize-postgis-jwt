@@ -149,7 +149,7 @@ export class AuthService {
   }
 
   async logout(userId: number) {
-    this.userService.update(userId, { refreshToken: null })
+    return this.userService.update(userId, { refreshToken: null })
   }
 
   // private async updateRefreshToken(id: number, token: string): Promise<void> {

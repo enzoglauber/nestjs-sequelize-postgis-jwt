@@ -1,16 +1,17 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { Request } from 'express'
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { LoggerService } from 'src/core/logger/logger.service'
+import { UserService } from 'src/user/user.service'
 import { AuthService } from '../auth.service'
-import { UserPayload } from '../interfaces/request-with-user'
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refresh') {
   constructor(
     private readonly authService: AuthService,
+    private readonly userService: UserService,
     private readonly loggerService: LoggerService,
     private readonly configService: ConfigService
   ) {
@@ -39,10 +40,16 @@ export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refre
   //   return userPayload
   // }
 
-  async validate(req: Request, payload: UserPayload) {
-    const refreshToken = req.get('Authorization').replace('Bearer', '').trim()
+  async validate(req: Request, payload: any) {
+    const refreshToken = req.get('authorization')?.replace('Bearer ', '').trim()
+    const me = await this.userService.findOne(payload.sub)
+
     this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, payload, refreshToken)
-    return { ...payload, refreshToken }
+    if (me && me.refreshToken) {
+      return { ...payload, ...me, refreshToken }
+    } else {
+      throw new UnauthorizedException()
+    }
   }
 }
 

@@ -86,7 +86,8 @@ export class AuthController {
   public async refresh(@Req() request: RequestWithUser) {
     log('REFRESH:::::::::::::::::: ', request.user)
     // const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user)
-    return { message: 'Refresh successful' }
+    const { refreshToken } = request.user
+    return { message: 'Refresh successful', refreshToken }
   }
 
   @Get('logout')
