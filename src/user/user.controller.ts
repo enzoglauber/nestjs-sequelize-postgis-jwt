@@ -42,8 +42,8 @@ export class UserController {
   @ApiOkResponse({ type: UserDto })
   @ApiParam({ name: 'id', required: true })
   @ApiBody({ type: UpdateUserDto, description: 'User body attributes' })
-  async update(@Param('id', ParseIntPipe) id: number, @Body() address: UpdateUserDto) {
-    return this.userService.update(id, address)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() user: UpdateUserDto) {
+    return this.userService.update(id, user)
   }
 
   @Delete(':id')
