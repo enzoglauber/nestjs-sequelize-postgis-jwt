@@ -20,20 +20,6 @@ export class AuthService {
     this.loggerService.setContext(AuthService.name)
   }
 
-  public async veryifyUserRefreshToken(refreshToken: string, userId: number): Promise<UserPayload | null> {
-    const user = await this.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
-
-    if (!user) {
-      this.loggerService.error('User not found')
-      return null
-    }
-
-    return {
-      id: user.id,
-      email: user.email
-    }
-  }
-
   async signUp(signUpDto: CreateUserDto) {
     const user = await this.userService.findByEmail(signUpDto.email)
     if (user) {
@@ -48,8 +34,7 @@ export class AuthService {
     refreshToken: string
   }> {
     const { accessToken, refreshToken } = await this.getTokens(user)
-
-    await this.userService.update(user.id, { refreshToken })
+    await this.updateRefreshToken(user.id, refreshToken)
 
     return {
       accessToken,
@@ -110,11 +95,12 @@ export class AuthService {
   }
 
   async refreshTokens(userId: number, refreshToken: string) {
-    log(`refreshTokens`, userId, refreshToken)
     const user = await this.userService.findOne(userId)
     if (!user || !user.refreshToken) throw new ForbiddenException('Access Denied')
 
-    const refreshTokenMatches = await this.hashingService.compare(user.refreshToken, refreshToken)
+    log(`refreshTokens`, refreshToken)
+    log(`refreshTokens2`, user)
+    const refreshTokenMatches = await this.hashingService.compare(refreshToken, user.refreshToken)
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Tokens do not match')
     }
@@ -150,16 +136,6 @@ export class AuthService {
   async logout(userId: number) {
     return this.userService.update(userId, { refreshToken: null })
   }
-
-  // private async updateRefreshToken(id: number, token: string): Promise<void> {
-  //   const user = await this.userService.findOne(id)
-  //   if (!user) {
-  //     throw new NotFoundException(`User not found by id: ${id}`)
-  //   }
-
-  //   const refreshToken = await this.hashingService.hash(token)
-  //   await this.userService.update(id, { refreshToken })
-  // }
 
   private async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<UserDto> {
     const user = await this.userService.findOne(id)

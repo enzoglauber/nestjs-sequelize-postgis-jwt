@@ -5,12 +5,10 @@ import { Request } from 'express'
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { UserService } from 'src/user/user.service'
-import { AuthService } from '../auth.service'
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refresh') {
   constructor(
-    private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly loggerService: LoggerService,
     private readonly configService: ConfigService
@@ -44,7 +42,7 @@ export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refre
     const refreshToken = req.get('authorization')?.replace('Bearer ', '').trim()
     const me = await this.userService.findOne(payload.sub)
 
-    this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, me.refreshToken, 'LEGAL')
+    this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, me.refreshToken)
     if (me && me.refreshToken) {
       return { ...payload, id: payload.sub, refreshToken }
     } else {

@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { log } from 'node:console'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
@@ -84,9 +83,8 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
   public async refresh(@Req() request: RequestWithUser) {
-    log(request.user)
     const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user.id, request.user.refreshToken)
-    // const { refreshToken } = request.user
+    // return { message: 'Refresh successful' }
     return { message: 'Refresh successful', refreshToken, accessToken }
   }
 
