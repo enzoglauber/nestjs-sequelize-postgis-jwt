@@ -116,7 +116,6 @@ export class AuthService {
 
     const refreshTokenMatches = await this.hashingService.compare(user.refreshToken, refreshToken)
     if (!refreshTokenMatches) {
-      this.loggerService.error('Tokens do not match', { userId, userRefreshToken: user.refreshToken, receivedRefreshToken: refreshToken })
       throw new ForbiddenException('Tokens do not match')
     }
     const tokens = await this.getTokens(user)

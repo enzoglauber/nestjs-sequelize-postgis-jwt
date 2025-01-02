@@ -79,15 +79,15 @@ export class AuthController {
   // }
 
   @Public()
+  @Get('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
-  @Get('refresh')
   public async refresh(@Req() request: RequestWithUser) {
-    log('REFRESH:::::::::::::::::: ', request.user)
-    // const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user)
-    const { refreshToken } = request.user
-    return { message: 'Refresh successful', refreshToken }
+    log(request.user)
+    const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user.id, request.user.refreshToken)
+    // const { refreshToken } = request.user
+    return { message: 'Refresh successful', refreshToken, accessToken }
   }
 
   @Get('logout')
@@ -102,7 +102,7 @@ export class AuthController {
   })
   async logout(@Req() request: RequestWithUser) {
     this.authService.logout(request.user.id)
-    return { message: 'Logged out successfully' }
+    return { message: 'Logged out successfull', id: request.user.id }
   }
 
   // // @HttpCode(HttpStatus.OK)

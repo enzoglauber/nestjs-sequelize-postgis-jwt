@@ -44,9 +44,9 @@ export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refre
     const refreshToken = req.get('authorization')?.replace('Bearer ', '').trim()
     const me = await this.userService.findOne(payload.sub)
 
-    this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, payload, refreshToken)
+    this.loggerService.log(`JwtRefreshStrategy::::::::::::::::`, me.refreshToken, 'LEGAL')
     if (me && me.refreshToken) {
-      return { ...payload, ...me, refreshToken }
+      return { ...payload, id: payload.sub, refreshToken }
     } else {
       throw new UnauthorizedException()
     }
