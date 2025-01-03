@@ -1,11 +1,10 @@
-import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { log } from 'node:console'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
-import { UserDto } from 'src/user/dto/user.dto'
 import { UserService } from 'src/user/user.service'
 
 @Injectable()
@@ -29,7 +28,7 @@ export class AuthService {
     return await this.userService.create(signUpDto)
   }
 
-  public async login(user: UserPayload): Promise<{
+  async login(user: UserPayload): Promise<{
     accessToken: string
     refreshToken: string
   }> {
@@ -118,40 +117,40 @@ export class AuthService {
     })
   }
 
-  public async refreshToken(userId: number, refreshToken: string) {
-    this.loggerService.log(`refreshToken`, userId, refreshToken)
-    const user = await this.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
-
-    if (!user) {
-      this.loggerService.error('User not found')
-      return null
-    }
-
-    return {
-      id: user.id,
-      email: user.email
-    }
-  }
-
   async logout(userId: number) {
     return this.userService.update(userId, { refreshToken: null })
   }
 
-  private async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<UserDto> {
-    const user = await this.userService.findOne(id)
-    if (!user) {
-      this.loggerService.error(`User not found with id: ${id}`)
-      throw new NotFoundException('User not found')
-    }
+  // public async refreshToken(userId: number, refreshToken: string) {
+  //   this.loggerService.log(`refreshToken`, userId, refreshToken)
+  //   const user = await this.findOneByIdAndRefreshToken(userId, refreshToken).catch(() => null)
 
-    const isValid = await this.hashingService.compare(refreshToken, user.refreshToken)
-    if (!isValid) {
-      this.loggerService.error('Invalid refresh token')
-      throw new ForbiddenException('Invalid refresh token')
-    }
+  //   if (!user) {
+  //     this.loggerService.error('User not found')
+  //     return null
+  //   }
 
-    return user
-  }
+  //   return {
+  //     id: user.id,
+  //     email: user.email
+  //   }
+  // }
+
+  // private async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<UserDto> {
+  //   const user = await this.userService.findOne(id)
+  //   if (!user) {
+  //     this.loggerService.error(`User not found with id: ${id}`)
+  //     throw new NotFoundException('User not found')
+  //   }
+
+  //   const isValid = await this.hashingService.compare(refreshToken, user.refreshToken)
+  //   if (!isValid) {
+  //     this.loggerService.error('Invalid refresh token')
+  //     throw new ForbiddenException('Invalid refresh token')
+  //   }
+
+  //   return user
+  // }
 
   // public async veryifyUserEmail(email: string): Promise<UserPayload | null> {
   //   const user = await this.usersService.findOneByEmail(email).catch(() => null)
