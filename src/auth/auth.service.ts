@@ -1,7 +1,6 @@
 import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { log } from 'node:console'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
@@ -97,8 +96,6 @@ export class AuthService {
     const user = await this.userService.findOne(userId)
     if (!user || !user.refreshToken) throw new ForbiddenException('Access Denied')
 
-    log(`refreshTokens`, refreshToken)
-    log(`refreshTokens2`, user)
     const refreshTokenMatches = await this.hashingService.compare(refreshToken, user.refreshToken)
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Tokens do not match')
