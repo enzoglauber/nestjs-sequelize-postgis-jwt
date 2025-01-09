@@ -2,11 +2,13 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
+import { LoggerService } from 'src/core/logger/logger.service'
 import { UserService } from 'src/user/user.service'
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
+    private readonly loggerService: LoggerService,
     private readonly userService: UserService
   ) {
     super({
@@ -17,11 +19,13 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: number; username: string }) {
-    const me = await this.userService.findOne(payload.sub)
-    if (!me) {
-      throw new UnauthorizedException()
+    const user = await this.userService.findOne(payload.sub)
+    delete user.password
+    if (!user || !user.refreshToken) {
+      this.loggerService.log(`User not found or no refresh token: ${payload.sub}`)
+      throw new UnauthorizedException('User not found or no refresh token')
     }
-    return { ...payload, id: payload.sub, ...me }
+    return { ...user }
   }
 
   // async validate(payload: any) {

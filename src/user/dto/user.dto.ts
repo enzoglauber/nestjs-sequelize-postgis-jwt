@@ -68,8 +68,8 @@ export class UserDto {
 
   constructor(partial: Partial<UserDto>) {
     Object.assign(this, partial)
-    if (partial.addresses) {
-      this.addresses = partial.addresses.map((address) => new AddressDto(address))
+    if (partial?.addresses) {
+      this.addresses = partial?.addresses.map((address) => new AddressDto(address))
     }
   }
 }

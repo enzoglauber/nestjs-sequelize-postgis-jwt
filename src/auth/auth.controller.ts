@@ -83,8 +83,8 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtRefreshGuard)
   public async refresh(@Req() request: RequestWithUser) {
+    console.log('REFRESH:::::::::::::::::: ', request.user)
     const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user.id, request.user.refreshToken)
-    // return { message: 'Refresh successful' }
     return { message: 'Refresh successful', refreshToken, accessToken }
   }
 

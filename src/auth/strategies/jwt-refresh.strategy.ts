@@ -23,29 +23,25 @@ export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refre
   }
 
   async validate(req: Request, payload: any) {
-    const refreshToken = req.get('authorization')?.replace('Bearer ', '').trim() // Pegando o token da requisição
-    const me = await this.userService.findOne(payload.sub)
+    const refreshToken = req.get('authorization')?.replace('Bearer ', '').trim()
+    const user = await this.userService.findOne(payload.sub)
+    delete user.password
 
-    // Se o usuário não for encontrado ou não tiver refresh token, negamos o acesso
-    if (!me || !me.refreshToken) {
+    if (!user || !user.refreshToken) {
       this.loggerService.log(`User not found or no refresh token: ${payload.sub}`)
       throw new UnauthorizedException('User not found or no refresh token')
     }
 
-    // Log para depuração
     this.loggerService.log(`Validating refresh token for user: ${payload.sub}`)
 
-    // Comparamos o refresh token enviado na requisição com o armazenado no banco
-    const refreshTokenMatches = await this.hashingService.compare(refreshToken, me.refreshToken)
+    const refreshTokenMatches = await this.hashingService.compare(refreshToken, user.refreshToken)
 
-    // Se não houver correspondência, lançamos uma exceção
     if (!refreshTokenMatches) {
       this.loggerService.log(`Refresh token mismatch for user: ${payload.sub}`)
       throw new UnauthorizedException('Refresh token mismatch')
     }
 
-    // Se tudo estiver ok, retornamos o payload do JWT com o id do usuário
-    return { ...payload, id: payload.sub, refreshToken }
+    return { ...user, refreshToken }
   }
 }
 
