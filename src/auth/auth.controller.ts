@@ -68,15 +68,6 @@ export class AuthController {
     return request.user
   }
 
-  // @Get('refresh')
-  // @UseGuards(JwtRefreshGuard)
-  // async refresh(@Req() request: RequestWithUser) {
-  //   const refreshToken = request.headers.authorization?.replace('Bearer ', '').trim()
-  //   log('REFRESH:::::::::::::::::: ', request.user)
-  //   const tokens = this.authService.refreshTokens(request.user.id, refreshToken)
-  //   return { message: 'Refreshed out successfully', tokens }
-  // }
-
   @Public()
   @Get('refresh')
   @HttpCode(HttpStatus.OK)
@@ -84,7 +75,7 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   public async refresh(@Req() request: RequestWithUser) {
     console.log('REFRESH:::::::::::::::::: ', request.user)
-    const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user.id, request.user.refreshToken)
+    const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user)
     return { message: 'Refresh successful', refreshToken, accessToken }
   }
 

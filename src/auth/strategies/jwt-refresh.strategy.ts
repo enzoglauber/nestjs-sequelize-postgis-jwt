@@ -6,6 +6,7 @@ import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { UserService } from 'src/user/user.service'
+import { UserPayload } from '../interfaces/request-with-user'
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refresh') {
@@ -22,7 +23,7 @@ export class JwtRefreshStrategy extends PassportStrategy(JwtStrategy, 'jwt-refre
     })
   }
 
-  async validate(req: Request, payload: any) {
+  async validate(req: Request, payload: UserPayload) {
     const refreshToken = req.get('authorization')?.replace('Bearer ', '').trim()
     const user = await this.userService.findOne(payload.sub)
     delete user.password

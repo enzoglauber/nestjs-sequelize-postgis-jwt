@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { UserService } from 'src/user/user.service'
+import { UserPayload } from '../interfaces/request-with-user'
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -18,7 +19,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: { sub: number; username: string }) {
+  async validate(payload: UserPayload) {
     const user = await this.userService.findOne(payload.sub)
     delete user.password
     if (!user || !user.refreshToken) {

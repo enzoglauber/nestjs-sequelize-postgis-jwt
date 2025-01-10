@@ -1,10 +1,12 @@
-import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
+import { UserDto } from 'src/user/dto/user.dto'
 import { UserService } from 'src/user/user.service'
+import { AuthLogin } from './types/auth'
 
 @Injectable()
 export class AuthService {
@@ -27,7 +29,7 @@ export class AuthService {
     return await this.userService.create(signUpDto)
   }
 
-  async login(user: UserPayload): Promise<{
+  async login(user: AuthLogin): Promise<{
     accessToken: string
     refreshToken: string
   }> {
@@ -40,7 +42,22 @@ export class AuthService {
     }
   }
 
-  private async getTokens(user: UserPayload) {
+  async refreshTokens(user: UserDto) {
+    const tokens = await this.getTokens(user)
+    await this.updateRefreshToken(user.id, tokens.refreshToken)
+
+    return tokens
+  }
+
+  private async updateRefreshToken(userId: number, refreshToken: string) {
+    const hashedRefreshToken = await this.hashingService.hash(refreshToken)
+
+    await this.userService.update(userId, {
+      refreshToken: hashedRefreshToken
+    })
+  }
+
+  private async getTokens(user: Partial<UserDto>) {
     const [accessToken, refreshToken] = await Promise.all([this.getAccessToken(user), this.getRefreshToken(user)])
 
     return {
@@ -49,12 +66,9 @@ export class AuthService {
     }
   }
 
-  private async getAccessToken(userPayload: UserPayload): Promise<string> {
+  private async getAccessToken(user: Partial<UserDto>) {
     return this.jwtService.signAsync(
-      {
-        sub: userPayload.id,
-        email: userPayload.email
-      },
+      { sub: user.id, user },
       {
         secret: this.configService.get('JWT_TOKEN'),
         expiresIn: this.configService.get('JWT_TOKEN_TTL')
@@ -62,12 +76,9 @@ export class AuthService {
     )
   }
 
-  private async getRefreshToken(userPayload: UserPayload): Promise<string> {
+  private async getRefreshToken(user: Partial<UserDto>): Promise<string> {
     return this.jwtService.signAsync(
-      {
-        sub: userPayload.id,
-        email: userPayload.email
-      },
+      { sub: user.id, user },
       {
         secret: this.configService.get('JWT_REFRESH'),
         expiresIn: this.configService.get('JWT_REFRESH_TTL')
@@ -75,7 +86,7 @@ export class AuthService {
     )
   }
 
-  async validate(email: string, password: string): Promise<any> {
+  async validate(email: string, password: string) {
     const user = await await this.userService.findByEmail(email)
 
     if (!user) {
@@ -90,28 +101,6 @@ export class AuthService {
 
     delete user.password
     return user
-  }
-
-  async refreshTokens(userId: number, refreshToken: string) {
-    const user = await this.userService.findOne(userId)
-    if (!user || !user.refreshToken) throw new ForbiddenException('Access Denied')
-
-    const refreshTokenMatches = await this.hashingService.compare(refreshToken, user.refreshToken)
-    if (!refreshTokenMatches) {
-      throw new ForbiddenException('Tokens do not match')
-    }
-    const tokens = await this.getTokens(user)
-    await this.updateRefreshToken(user.id, tokens.refreshToken)
-
-    return tokens
-  }
-
-  private async updateRefreshToken(userId: number, refreshToken: string) {
-    const hashedRefreshToken = await this.hashingService.hash(refreshToken)
-
-    await this.userService.update(userId, {
-      refreshToken: hashedRefreshToken
-    })
   }
 
   async logout(userId: number) {

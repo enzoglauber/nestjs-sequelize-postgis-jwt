@@ -1,12 +1,11 @@
 import { Request } from 'express'
+import { UserDto } from 'src/user/dto/user.dto'
 
 export type UserPayload = {
-  id: number
-  email: string
-  accessToken?: string
-  refreshToken?: string
+  sub: number
+  user?: UserDto
 }
 
 export interface RequestWithUser extends Request {
-  user: UserPayload
+  user: UserDto
 }

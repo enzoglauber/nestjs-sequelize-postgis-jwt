@@ -1,9 +1,11 @@
+import { UserPayload } from '../interfaces/request-with-user'
+
 type AuthInput = {
   email: string
   password: string
 }
 
-type UserPayload = {
+type AuthLogin = {
   id: number
   email: string
 }
