@@ -93,9 +93,9 @@ export class AuthService {
       throw new BadRequestException('Invalid credentials')
     }
 
-    const isPasswordValid = await this.hashingService.compare(password, user.password)
+    const match = await this.hashingService.compare(password, user.password)
 
-    if (!isPasswordValid) {
+    if (!match) {
       throw new BadRequestException('Invalid credentials')
     }
 
