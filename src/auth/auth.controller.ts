@@ -1,5 +1,14 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse
+} from '@nestjs/swagger'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
@@ -7,7 +16,6 @@ import { SignInResponseDto } from './dto/sign-in-response.dto'
 import { SignInDto } from './dto/sign-in.dto'
 import { SignUpResponseDto } from './dto/sign-up-response.dto'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard'
 import { LocalGuard } from './guards/local.guard'
 import { RequestWithUser } from './interfaces/request-with-user'
 
@@ -16,6 +24,7 @@ import { RequestWithUser } from './interfaces/request-with-user'
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  //
   @Public()
   @Post('login')
   @HttpCode(200)
@@ -32,11 +41,10 @@ export class AuthController {
   })
   async login(@Req() request: RequestWithUser) {
     const { accessToken, refreshToken } = await this.authService.login(request.user)
-    // response.cookie('access_token', accessToken, { httpOnly: true })
-    // response.cookie('refresh_token', refreshToken, { httpOnly: true })
     return { accessToken, refreshToken }
   }
 
+  //
   @Public()
   @Post('signup')
   @HttpCode(201)
@@ -54,6 +62,7 @@ export class AuthController {
     return await this.authService.signUp(signUpDto)
   }
 
+  //
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -62,23 +71,57 @@ export class AuthController {
     description: 'This endpoint returns the current authenticated user.'
   })
   @ApiOkResponse({
-    description: 'Current user details'
+    description: 'Current user details',
+    schema: {
+      example: {
+        id: 1,
+        name: 'John Doe',
+        email: 'johndoe@example.com',
+        addresses: [
+          {
+            id: 1,
+            name: 'Home Address',
+            location: [-46.49303586178094, -23.5069054086106]
+          }
+        ]
+      }
+    }
   })
   async getMe(@Req() request: RequestWithUser) {
     return request.user
   }
 
+  //
   @Public()
   @Get('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @UseGuards(JwtRefreshGuard)
+  @ApiOperation({
+    summary: 'Refresh authentication tokens',
+    description: 'This endpoint allows the user to refresh their authentication tokens using a valid refresh token.'
+  })
+  @ApiOkResponse({
+    description: 'New authentication tokens generated successfully.',
+    schema: {
+      example: {
+        message: 'Refresh successful',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired refresh token.'
+  })
+  @ApiForbiddenResponse({
+    description: 'The refresh token does not match the user’s current token or other authorization issues.'
+  })
   public async refresh(@Req() request: RequestWithUser) {
-    console.log('REFRESH:::::::::::::::::: ', request.user)
     const { accessToken, refreshToken } = await this.authService.refreshTokens(request.user)
     return { message: 'Refresh successful', refreshToken, accessToken }
   }
 
+  //
   @Get('logout')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -111,18 +154,4 @@ export class AuthController {
   // //   const redirectUrl = this.configService.getOrThrow('FRONTEND_REDIRECT_URI')
   // //   response.redirect(redirectUrl)
   // // }
-
-  // @UseGuards(PassportJwtAuthGuard)
-  // @Get('/me')
-  // public async getUserPayload(@Req() request: Request) {
-  //   return request.user
-  // }
-
-  // @HttpCode(HttpStatus.OK)
-  // @Post('logout')
-  // public async logout(@Res() response: Response): Promise<Response<{ message: string }>> {
-  //   // response.clearCookie('access_token')
-  //   // response.clearCookie('refresh_token')
-  //   return response.send({ message: 'Logged out successfully' })
-  // }
 }
