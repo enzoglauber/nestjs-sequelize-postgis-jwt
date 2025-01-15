@@ -24,14 +24,14 @@ module.exports = {
     await queryInterface.addConstraint('address', {
       fields: ['userId'],
       type: 'foreign key',
-      references: { table: 'Users', field: 'id' },
+      references: { table: 'user', field: 'id' },
       onDelete: 'cascade',
       onUpdate: 'cascade'
     })
   },
 
   down: async (queryInterface) => {
-    await queryInterface.dropTable('Addresses')
-    await queryInterface.dropTable('Users')
+    await queryInterface.dropTable('address')
+    await queryInterface.dropTable('user')
   }
 }
