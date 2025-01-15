@@ -49,8 +49,6 @@ export class UserController {
   @Delete(':id')
   @ApiOkResponse({ type: UserDto })
   @ApiParam({ name: 'id', required: true })
-  // @ApiBearerAuth()
-  // @UseGuards(AuthGuard('jwt'))
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.userService.delete(id)
   }
