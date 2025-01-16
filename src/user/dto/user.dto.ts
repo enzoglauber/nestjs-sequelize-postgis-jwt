@@ -1,8 +1,9 @@
 import { Exclude, Transform } from 'class-transformer'
 
 import { ApiProperty } from '@nestjs/swagger'
-import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator'
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator'
 import { AddressDto } from 'src/address/dto/address.dto'
+import { UserRole } from 'src/core/enums/user-role.enum'
 
 export class UserDto {
   @ApiProperty({
@@ -35,6 +36,16 @@ export class UserDto {
   @IsOptional()
   @Exclude()
   refreshToken?: string
+
+  @ApiProperty({
+    description: 'Roles assigned to the user',
+    enum: UserRole,
+    isArray: true,
+    example: [UserRole.USER]
+  })
+  @IsArray()
+  @IsEnum(UserRole, { each: true })
+  roles: UserRole[]
 
   @ApiProperty({
     description: 'Password of the user',

@@ -21,6 +21,13 @@ export class User extends Model {
   @Column({ type: DataType.STRING, allowNull: false })
   password: string
 
+  @Column({
+    type: DataType.ARRAY(DataType.ENUM('ADMIN', 'USER', 'MANAGER')),
+    allowNull: false,
+    defaultValue: ['USER']
+  })
+  roles: string[]
+
   @HasMany(() => Address)
   addresses: Address[]
 }
