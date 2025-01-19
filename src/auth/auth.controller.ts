@@ -9,9 +9,12 @@ import {
   ApiTags,
   ApiUnauthorizedResponse
 } from '@nestjs/swagger'
+import { UserRole } from 'src/core/enums/user-role.enum'
+import { RolesGuard } from 'src/core/guards/roles.guard'
 import { CreateUserDto } from 'src/user/dto/create-user.dto'
 import { AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
+import { Roles } from './decorators/roles.decorator'
 import { SignInResponseDto } from './dto/sign-in-response.dto'
 import { SignInDto } from './dto/sign-in.dto'
 import { SignUpResponseDto } from './dto/sign-up-response.dto'
@@ -64,7 +67,8 @@ export class AuthController {
 
   //
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get current user',
