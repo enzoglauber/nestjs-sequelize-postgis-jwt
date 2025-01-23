@@ -8,6 +8,12 @@ module.exports = {
       name: { type: Sequelize.STRING, allowNull: false },
       email: { type: Sequelize.STRING, unique: true, allowNull: false },
       password: { type: Sequelize.STRING, allowNull: false },
+      // refreshToken: { type: Sequelize.STRING, allowNull: true },
+      // roles: {
+      //   type: Sequelize.ARRAY(Sequelize.ENUM('ADMIN', 'USER', 'MANAGER')),
+      //   allowNull: false,
+      //   defaultValue: Sequelize.literal("ARRAY['USER']::enum_user_roles[]")
+      // },
       createdAt: { type: Sequelize.DATE, defaultValue: Sequelize.fn('NOW') },
       updatedAt: { type: Sequelize.DATE, defaultValue: Sequelize.fn('NOW') }
     })
