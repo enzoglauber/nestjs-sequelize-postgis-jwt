@@ -32,6 +32,25 @@ export class UserService {
   }
 
   async findAll(page: number = 1, limit: number = 10): Promise<UserDto[]> {
+    // const filters = {
+    //   [Op.or]: [
+    //     Sequelize.where(Sequelize.fn('char_length', Sequelize.col('name')), 7),
+    //     {
+    //       email: {
+    //         [Op.like]: 'user@example%',
+    //       },
+    //     },
+    //     {
+    //       [Op.and]: [
+    //         { roles: { [Op.contains]: ['USER'] } }, // Exemplo de filtro com array (roles)
+    //         Sequelize.where(Sequelize.fn('char_length', Sequelize.col('email')), {
+    //           [Op.gt]: 10,
+    //         }),
+    //       ],
+    //     },
+    //   ],
+    // };
+
     const users = await this.userRepository.findAll({
       limit,
       offset: (page - 1) * limit,
