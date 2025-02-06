@@ -21,14 +21,21 @@ export class UserController {
 
   @Public()
   @Get()
-  @ApiOperation({
-    description: 'List users'
-  })
+  @ApiOperation({ description: 'List users' })
   @ApiQuery({ name: 'page', description: 'Start from 1 to X', required: false })
   @ApiQuery({ name: 'limit', description: 'Number of elements in results', required: false })
+  @ApiQuery({ name: 'name', description: 'Filter by name', required: false })
+  @ApiQuery({ name: 'email', description: 'Filter by email', required: false })
+  @ApiQuery({ name: 'roles', description: 'Filter by roles (comma-separated)', required: false, type: String })
   @ApiOkResponse({ type: User, isArray: true, description: `Users listed successfully.` })
-  async findAll(@Query('page', ParseIntPipe) page = 1, @Query('limit', ParseIntPipe) limit = 10) {
-    return this.userService.findAll(page, limit)
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('name') name?: string,
+    @Query('email') email?: string,
+    @Query('roles') roles?: string
+  ) {
+    return this.userService.findAll({ page, limit, name, email, roles })
   }
 
   @Get(':id')

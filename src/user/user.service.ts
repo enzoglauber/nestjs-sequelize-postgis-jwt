@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
+import { Op } from 'sequelize'
 import { Address } from 'src/address/entities/address.entity'
 import { HashingService } from 'src/core/hashing/hashing.service'
 import { LoggerService } from 'src/core/logger/logger.service'
@@ -31,32 +32,38 @@ export class UserService {
     return new UserDto(created.get({ plain: true }))
   }
 
-  async findAll(page: number = 1, limit: number = 10): Promise<UserDto[]> {
-    // const filters = {
-    //   [Op.or]: [
-    //     Sequelize.where(Sequelize.fn('char_length', Sequelize.col('name')), 7),
-    //     {
-    //       email: {
-    //         [Op.like]: 'user@example%',
-    //       },
-    //     },
-    //     {
-    //       [Op.and]: [
-    //         { roles: { [Op.contains]: ['USER'] } }, // Exemplo de filtro com array (roles)
-    //         Sequelize.where(Sequelize.fn('char_length', Sequelize.col('email')), {
-    //           [Op.gt]: 10,
-    //         }),
-    //       ],
-    //     },
-    //   ],
-    // };
+  async findAll({
+    page = 1,
+    limit = 10,
+    name,
+    email,
+    roles
+  }: {
+    page: number
+    limit: number
+    name?: string
+    email?: string
+    roles?: string
+  }): Promise<UserDto[]> {
+    const where: any = {}
+
+    if (name) {
+      where.name = { [Op.iLike]: `%${name}%` }
+    }
+
+    if (email) {
+      where.email = { [Op.iLike]: `%${email}%` }
+    }
+
+    if (roles) {
+      const rolesArray = roles.split(',')
+      where.roles = { [Op.overlap]: rolesArray }
+    }
 
     const users = await this.userRepository.findAll({
       limit,
       offset: (page - 1) * limit,
-      // where: {
-      //   [Op.or]
-      // }
+      where,
       include: [
         {
           model: Address,
