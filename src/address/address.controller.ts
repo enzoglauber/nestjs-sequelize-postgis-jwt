@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { Public } from 'src/auth/decorators/public.decorator'
 import { ParseAtPipe } from 'src/core/pipes/parse-at.pipe'
 import { ParseRadiusPipe } from 'src/core/pipes/parse-radius.pipe'
 import { AddressService } from './address.service'
@@ -25,30 +26,27 @@ export class AddressController {
     return this.addressService.findAll()
   }
 
+  @Public()
   @Get('/location')
-  @ApiOperation({
-    description: 'List addresses near a location with radius'
-  })
+  @ApiOperation({ description: 'List addresses near a location with radius' })
   @ApiQuery({ name: 'page', description: 'Start from 1 to X', required: false })
   @ApiQuery({ name: 'limit', description: 'Number of elements in results', required: false })
-  @ApiQuery({
-    name: 'at',
-    description: 'Coordinates in the format lat,long (e.g., -23.53506,-46.525199)',
-    type: String
-  })
-  @ApiQuery({
-    name: 'radius',
-    description: 'Radius in kilometers to search for addresses',
-    type: Number
-  })
+  @ApiQuery({ name: 'at', description: 'Coordinates in the format lat,long (e.g., -23.53506,-46.525199)', type: String })
+  @ApiQuery({ name: 'radius', description: 'Radius in kilometers to search for addresses', type: Number })
+  @ApiQuery({ name: 'name', description: 'Filter by user name', required: false })
+  @ApiQuery({ name: 'email', description: 'Filter by user email', required: false })
+  @ApiQuery({ name: 'roles', description: 'Filter by user roles (comma-separated)', required: false, type: String })
   @ApiOkResponse({ type: AddressFullyDto, isArray: true, description: 'Addresses listed successfully with location details.' })
   async findAllWithLocation(
     @Query('page', ParseIntPipe) page = 1,
     @Query('limit', ParseIntPipe) limit = 10,
     @Query('at', ParseAtPipe) at: [number, number],
-    @Query('radius', ParseRadiusPipe) radius: number
+    @Query('radius', ParseRadiusPipe) radius: number,
+    @Query('name') name?: string,
+    @Query('email') email?: string,
+    @Query('roles') roles?: string
   ) {
-    return this.addressService.findAllWithLocation(page, limit, at, radius)
+    return this.addressService.findAllWithLocation({ page, limit, at, radius, name, email, roles })
   }
 
   @Get(':id')

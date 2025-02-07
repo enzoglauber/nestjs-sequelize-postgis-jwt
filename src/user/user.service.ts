@@ -56,8 +56,8 @@ export class UserService {
     }
 
     if (roles) {
-      const rolesArray = roles.split(',')
-      where.roles = { [Op.overlap]: rolesArray }
+      const overlap = roles.split(',')
+      where.roles = { [Op.overlap]: overlap }
     }
 
     const users = await this.userRepository.findAll({

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
-import { col, fn, literal } from 'sequelize'
+import { col, fn, literal, Op } from 'sequelize'
 import { User } from 'src/user/entities/user.entity'
 import { ADDRESS_REPOSITORY } from './address.providers'
 import { AddressDto, AddressFullyDto } from './dto/address.dto'
@@ -39,34 +39,52 @@ export class AddressService {
   // WHERE ST_DWithin(location, ST_SetSRID(ST_GeomFromText('POINT(-23.53506 -46.525199)'), 4326), 0.015)
   // ORDER BY distance ASC;
 
-  async findAllWithLocation(
-    page: number = 1,
-    limit: number = 10,
-    at?: [number, number],
-    radius: number = 0.015
-  ): Promise<AddressFullyDto[]> {
+  async findAllWithLocation({
+    page = 1,
+    limit = 10,
+    at,
+    radius = 0.015,
+    name,
+    email,
+    roles
+  }: {
+    page: number
+    limit: number
+    at?: [number, number]
+    radius: number
+    name?: string
+    email?: string
+    roles?: string
+  }): Promise<AddressFullyDto[]> {
     const [lat, lng] = at
     const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
     const distance = fn('ST_Distance', col('location'), location)
 
     const attributes: any[] = [...Object.keys(Address.getAttributes()), [distance, 'distance']]
+
+    const userWhere: any = {}
+
+    if (name) {
+      userWhere.name = { [Op.iLike]: `%${name}%` }
+    }
+
+    if (email) {
+      userWhere.email = { [Op.iLike]: `%${email}%` }
+    }
+
+    if (roles) {
+      const rolesArray = roles.split(',')
+      userWhere.roles = { [Op.overlap]: rolesArray }
+    }
+
     const addresses = await Address.findAll({
       attributes,
-      include: [{ model: User, where: null }],
-      // include: [{ model: User, where: { email: 'user1@example.com' } }],
+      include: [{ model: User, where: Object.keys(userWhere).length ? userWhere : undefined }],
       where: fn('ST_DWithin', col('location'), location, radius),
       order: [[literal('"distance"'), 'ASC']],
       limit,
       offset: (page - 1) * limit
     })
-
-    // const { Op } = require('sequelize')
-    // Post.findAll({
-    //   where: {
-    //     [Op.and]: [{ authorId: 12 }, { status: 'active' }]
-    //   }
-    // })
-    // // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 
     return addresses.map((address) => new AddressFullyDto(address.get({ plain: true })))
   }
