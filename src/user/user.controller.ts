@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { log } from 'node:console'
 import { Public } from 'src/auth/decorators/public.decorator'
+import { ParseCommaPipe } from 'src/core/pipes/parse-comma.pipe'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UserDto } from './dto/user.dto'
@@ -33,8 +35,9 @@ export class UserController {
     @Query('limit', ParseIntPipe) limit = 10,
     @Query('name') name?: string,
     @Query('email') email?: string,
-    @Query('roles') roles?: string
+    @Query('roles', ParseCommaPipe) roles?: string[]
   ) {
+    log('roles', roles)
     return this.userService.findAll({ page, limit, name, email, roles })
   }
 

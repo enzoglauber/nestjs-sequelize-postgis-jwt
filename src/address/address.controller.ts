@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query 
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Public } from 'src/auth/decorators/public.decorator'
 import { ParseAtPipe } from 'src/core/pipes/parse-at.pipe'
+import { ParseCommaPipe } from 'src/core/pipes/parse-comma.pipe'
 import { ParseRadiusPipe } from 'src/core/pipes/parse-radius.pipe'
 import { AddressService } from './address.service'
 import { AddressDto, AddressFullyDto } from './dto/address.dto'
@@ -44,7 +45,7 @@ export class AddressController {
     @Query('radius', ParseRadiusPipe) radius: number,
     @Query('name') name?: string,
     @Query('email') email?: string,
-    @Query('roles') roles?: string
+    @Query('roles', ParseCommaPipe) roles?: string[]
   ) {
     return this.addressService.findAllWithLocation({ page, limit, at, radius, name, email, roles })
   }

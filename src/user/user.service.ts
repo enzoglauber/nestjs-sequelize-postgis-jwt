@@ -43,7 +43,7 @@ export class UserService {
     limit: number
     name?: string
     email?: string
-    roles?: string
+    roles?: string[]
   }): Promise<UserDto[]> {
     const where: any = {}
 
@@ -56,8 +56,7 @@ export class UserService {
     }
 
     if (roles) {
-      const overlap = roles.split(',')
-      where.roles = { [Op.overlap]: overlap }
+      where.roles = { [Op.overlap]: roles }
     }
 
     const users = await this.userRepository.findAll({

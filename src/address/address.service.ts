@@ -54,7 +54,7 @@ export class AddressService {
     radius: number
     name?: string
     email?: string
-    roles?: string
+    roles?: string[]
   }): Promise<AddressFullyDto[]> {
     const [lat, lng] = at
     const location = literal(`ST_SetSRID(ST_GeomFromText('POINT(${lat} ${lng})'), 4326)`)
@@ -73,8 +73,7 @@ export class AddressService {
     }
 
     if (roles) {
-      const rolesArray = roles.split(',')
-      userWhere.roles = { [Op.overlap]: rolesArray }
+      userWhere.roles = { [Op.overlap]: roles }
     }
 
     const addresses = await Address.findAll({
